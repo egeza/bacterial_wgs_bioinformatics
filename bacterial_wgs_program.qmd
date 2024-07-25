@@ -26,6 +26,6 @@ Antimicrobial resistance (AMR) gene, nd virulence factors identification, plasmi
 
 Comparative genomics (phylogenetic tree, pan- and core-genome analysis)
 
-## Day 6 
+## Day 6
 
 Report writing
