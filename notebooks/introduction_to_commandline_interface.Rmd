@@ -1,0 +1,9 @@
+## Objectives
+1. Describe key reasons for using shell
+2. Navigate the file system using the command line
+3. Access and read help files for bash programs and use the help function to identify useful command options
+4. Use command line to navigate files and directories
+5. Read and create, copy, move/rename files/directories
+6. Search information in a file, print results of a command line to a file, construct command pipelines
+7. Use for loops to run command for several input files
+8. Write and execute a shell script (use of editors to modify files, use chmod to make a script executable)
