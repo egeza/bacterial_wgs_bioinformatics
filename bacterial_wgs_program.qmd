@@ -1,0 +1,31 @@
+---
+title: "Bacterial WGS Training Program"
+date: "July 29, 2024 - August 9, 2024"
+author: "Ephie"
+format: pdf
+editor: visual
+---
+
+## Day1 (29 July 2024)
+
+Setting-up, introduction to command line interface (CLI).
+
+## Day 2 (31 July 2024)
+
+Quality checking and control, and species identification
+
+## Day 3 (02 August 2024)
+
+Genome assembly, quality assessment and genome annotation
+
+## Day 4 (05 August 2024)
+
+Antimicrobial resistance (AMR) gene, nd virulence factors identification, plasmid finding and multi-locus sequence typing (MLST)
+
+## Day 5 (07 August 2024)
+
+Comparative genomics (phylogenetic tree, pan- and core-genome analysis)
+
+## Day 6 
+
+Report writing
