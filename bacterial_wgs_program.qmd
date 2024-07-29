@@ -6,7 +6,9 @@ format: pdf
 editor: visual
 ---
 
-## Day1 (29 July 2024)
+This is a training program for bacterial whole-genome sequencing (WGS) scheduled from **July 29, 2024** to **August 9, 2024**
+
+## Day 1 (29 July 2024)
 
 Setting-up, introduction to command line interface (CLI).
 

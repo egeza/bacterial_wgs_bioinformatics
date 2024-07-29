@@ -1,0 +1,63 @@
+---
+title: "Day 2: Quality checking and control and identifying species"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+## Objectives
+1. Describe reasons for quality checking in bacterial WGS data.
+2. Inspect and interpret the quality of bacterial WGS data
+3. Identify contamination (species)
+
+
+## Why checking the quality of WGS data
+We check the quality of WGS data for the following reasons
+
+1. Read Quality:
+  - Base Quality Scores: helps to identify poor-quality reads that may need to be trimmed or discarded.
+  - Adapter Contamination - to detect and remove adapter sequences to prevent misalignment and incorrect variant calling (not applicable).
+2. Contamination:
+  - Foreign DNA - to identify contamination from other organisms' DNA ensures that the sequence data accurately represents the target organism.
+  - Cross-Sample Contamination - to ensure no cross-sample contamination helps maintain the integrity of individual sample analyses.
+3. Biases and Artifacts:
+  - GC Bias - to detect and correct for GC content biases (achieve uniform coverage across the genome).
+  - PCR Duplicates - to identify and remove PCR duplicates reducing biases and ensure that reads are unique and representative.
+4. Resource Efficiency:
+  - Save on computational resources - High-quality data reduces the need for extensive computational resources to handle large amounts of low-quality data.
+  - Early identification and correction of quality issues saves time and Cost associated with re-sequencing or extensive data cleaning.
+5. Reproducibility:
+  - Ensures reproducibility and comparability of results across studies and sequencing platforms, guaranteeing reliable results.
+  - Enhances credibility of the research by meeting scientific journals' publication standards.
+
+
+## Common Quality Control Steps
+### Inspect read quality
+ - Assess an overview of read quality use quality scores, GC content, and other metrics (FASTQC, MULTIQC). 
+ We run the FASTQC and MULTIQC
+ 
+ 
+ - Trimming and Filtering - removing adapters and low quality bases (TRIMMOMATIC, CUTADAPT)
+
+### Identify contaminants
+ - Check for contaminants (identify species) - use KRAKEN2 or DECONTAM to identify and filter out contaminant sequences.
+ 
+### Mark and remove PCR duplicates
+  - After noting high duplication levels we remove them by PICARD or SAMTOOLS.
+
+### Coverage Analysis:
+  - Assess genome coverage and identify regions with insufficient coverage (BEDTools or QualiMap). 
+
+Overall, high-quality whole genome sequencing data helps researchers to trust that their analyses are based on accurate, reliable, and complete genomic information, leading to more robust scientific conclusions.
+
+```{r}
+plot(cars)
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

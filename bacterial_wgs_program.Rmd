@@ -1,0 +1,38 @@
+---
+title: "Bacterial WGS Training Program"
+author: "Ephie (ephie.geza@uct.ac.za)"
+date: "July 29, 2024 - August 9, 2024"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is a training program for bacterial whole-genome sequencing (WGS) scheduled from **July 29, 2024 to August 9, 2024**.
+
+# Schedule
+
+## Day 1 (29 July 2024)
+
+Setting-up, introduction to command line interface (CLI).
+
+## Day 2 (31 July 2024)
+
+Quality checking and control, and species identification.
+
+## Day 3 (02 August 2024)
+
+Genome assembly, quality assessment and genome annotation.
+
+## Day 4 (05 August 2024)
+
+Antimicrobial resistance (AMR) gene, nd virulence factors identification, plasmid finding and multi-locus sequence typing (MLST).
+
+## Day 5 (07 August 2024)
+
+Comparative genomics (phylogenetic tree, pan- and core-genome analysis).
+
+## Day 6
+
+Report writing
