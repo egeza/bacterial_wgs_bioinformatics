@@ -8,9 +8,314 @@ editor_options:
 ---
 
 ## Objectives
-1. Describe reasons for quality checking in bacterial WGS data.
-2. Inspect and interpret the quality of bacterial WGS data
-3. Identify contamination (species)
+1. Creating, moving, copying, and removing
+2. Redirecting output
+3. For loops
+4. Demonstrating basename in moving files
+5. Writing scripts and working with data
+6. Describe reasons for quality checking in bacterial WGS data.
+7. Inspect and interpret the quality of bacterial WGS data
+8. Identify contamination (species)
+
+## Day 1 recap
+ - The shell facilitates efficiency by using CLI instead of GUI.
+ - Useful commands for navigating the file system include: ls, pwd, and cd.
+ - Most commands take options (flags) which begin with a -.
+ - Tab completion can reduce errors from mistyping and make work more efficient in the shell.
+ - We can view file contents using less, cat, head or tail.
+ - The commands cp, mv, and mkdir are useful for manipulating existing files and creating new directories.
+ - One can view file permissions using ls -l and change permissions using chmod.
+ - The history command and the up arrow on your keyboard can be used to repeat recently used commands.
+
+## Creating, moving, copying, and removing
+```{bash create-move-copy-remove, eval=FALSE}
+# Create a copy of 105-008-01_S1
+cp tesftfile_R1.fastq tesftfile-copy_R1.fastq
+ls -F
+## move one step up
+cd ../
+
+# creating a dir
+mkdir backup
+
+mv toydata/tesftfile-copy_R1.fastq backup/
+ls backup
+
+cd backup
+mv tesftfile-copy_R1.fastq tesftfile-backup_R1.fastq
+```
+
+### File Permissions
+We’ve now made a backup copy of our file, now there are two copies of our file, it doesn’t make us safe. To make sure we can’t accidentally mess up this backup file, we’re going to change the permissions on the file so that it is read only  (i.e. not editable).
+
+View the current permissions on a file:
+```{bash view-permissions, eval=FALSE}
+ls -l
+```
+
+```{r, include=FALSE}
+library(knitr)
+```
+
+```{r explainining-permissions, echo=FALSE}
+include_graphics("C:/Users/epi/Documents/BST_projects/2024/trainings/bacterial_wgs_bioinformatics/permissions.PNG")
+```
+
+Let's now change the file permissions so that we won't be able to edit it
+
+```{bash view-permissions-change, eval=FALSE}
+chmod -w testfile-backup_R1.fastq
+ls -l
+
+# try removing file
+rm testfile_R1-backup.fastq
+
+cd ..
+rm -r backup
+```
+
+## Exercise
+Starting in the toydata/ directory, do the following:
+
+ 1. Make sure that you have deleted your backup directory and all files it contains.
+ 2. Create a backup of each of your FASTQ files using cp. (Note: You’ll need to do this individually for each of the two FASTQ files. We haven’t learned yet how to do this with a wildcard.)
+ 3. Use a wildcard to move all of your backup files to a new backup directory.
+ 4. Change the permissions on all of your backup files to be write-protected.
+
+## Searching files
+```{bash, eval=FALSE}
+grep "TTTTCTTTTT" toydata/testfile_R1.fastq
+grep -B1 -A2 TTTTCTTTTT toydata/testfile_R1.fastq
+```
+
+## EXERCISE
+ 1. Search for the sequence GNATNACCACTTCC in the testfile_R1.fastq file. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
+
+ 2. Search for the sequence AAGTT in both FASTQ files. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
+
+## KEY POINTS
+ - We can view file contents using less, cat, head or tail.
+ - The commands cp, mv, and mkdir are useful for manipulating existing files and creating new directories.
+ - One can view file permissions using ls -l and change permissions using chmod.
+ - The history command and the up arrow on your keyboard can be used to repeat recently used commands.
+ 
+ 
+## Redirecting output
+- We can save the standard output by using ">"
+```{bash file-redirecting, eval=FALSE}
+grep "@" toydata/testfile_R1.fastq > headers.txt
+```
+
+We can count how many sequences are in our testfile_R1.fastq by
+```{bash count-number-of-lines, eval=FALSE}
+wc headers.txt
+```
+**wc** stands for word count. The command counts the number of words, lines and characters in a file.
+
+
+## EXERCISE
+ 1. How many sequences are there in testfile_R2.fastq? Remember that every sequence is formed by four lines.
+ 2. How many sequences in testfile_R2.fastq contain at least 3 consecutive Ns?
+
+It is important to make sure the current command does not overwrite previous command especially when saving to a file. For example, perform the following operations:
+```{r search-in-many-files1, eval=FALSE}
+grep -B1 -A2 NNNNNNNNNN testfile_R1.fastq > bad_reads.fastq
+wc -l bad_reads.fastq
+```
+
+```{r search-in-many-files, eval=FALSE}
+grep -B1 -A2 NNNNNNNNNN toydata/testfile_R2.fastq > bad_reads.fastq
+wc -l bad_reads.fastq
+```
+
+To avoid overwriting, use the command >> (known as the “append redirect”). It will append new output to the end of a file, rather than overwriting it.
+
+```{r search-in-many-files-avoid-overwriting, eval=FALSE}
+grep -B1 -A2 NNNNN toydata/testfile_R1.fastq >> bad_reads.fastq
+wc -l bad_reads.fastq
+
+grep -B1 -A2 NNNNN toydata/testfile_R2.fastq >> bad_reads.fastq
+wc -l bad_reads.fastq
+```
+
+The above commands can be combined to a single line code by using
+```{r search-without-overwriting-one-line-code, eval=FALSE}
+grep -B1 -A2 NNNNN toydata/*.fastq > bad_reads.fastq
+wc -l bad_reads.fastq
+```
+
+ - This far we intended to count the number of reads and not the contents of the file that we were creating.
+ - To avoid cluttering up our workspace, we use the pipe command (|).
+ - The | take the output that is scrolling by on the terminal and uses that output as input to another command. 
+ - We can redirect our output from our the **grep** call through the less command.
+ - We can redirect our output from our the **grep** search to the wc -l command
+ - Always check if the the your output matches your expectations: *addition of blank lines*
+ - Output include “–” a default action for grep that separates groups of lines matching the pattern, and groups of lines which do not match the pattern so that they are not displayed. 
+ - Fix the issue by redirecting the grep output to a second instance of grep.
+ - -v option of grep search stands for --invert-match.
+ - It means grep will now only display the lines which do not match the searched pattern, in this case '^--'. 
+ - The caret (^) is an anchoring character matching the beginning of the line.
+ - Enclose the pattern by single quotes so that grep does not interpret the pattern as an extended option (starting with –).
+
+```{r quiry-output-always, eval=FALSE}
+grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | less
+grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | wc -l 
+# Check output matches expectation
+grep -B1 -A2 NNNNN toydata/testfile_R1.fastq > bad_reads.txt
+tail bad_reads.txt
+# Fix the output by redirect to another grep
+grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | grep -v '^--' > bad_reads.fastq
+tail bad_reads.fastq
+```
+
+## Writing for loops
+ - Loops are key to productivity improvements through automation, they allow for repeated commands execution. 
+ - Similarly to wildcards and tab completion, using loops also reduces the amount of typing mistakes. 
+ - They are helpful when performing operations on several sequencing files, e.g unzipping or trimming multiple files. 
+ - We will use loops in this training, let's cover the basics of them for now.
+ - In shell the keyword **for**, means repeat a command (or group of commands) once for each item in a list. 
+ - Each time an iteration runs, an item in the list is assigned in sequence to the variable, and the commands inside the loop are executed, before moving on to the next item in the list. 
+ - Call for a valuables's value inside the loop by putting **$** in front of it. 
+ - In shell programming, use of **$** is usually called “expanding” the variable as it treat the variable as a variable name and substitute its value in its place.
+
+```{r expanding-variables, eval=FALSE}
+foo="myname"
+echo My name is $foo
+## expanding with no space
+echo foo is $fooEFG      # doesn't work
+
+# Correct way
+echo foo is ${foo}EFG
+```
+
+ - Avoid expanding problem by enclosing the variable name in braces ({ and }. 
+ - Bash treats the # character as a comment character. 
+ - Any text on a line after a # is ignored by bash when evaluating the text as code.
+ - Ensure your working dir is bacterial_wgs_bioinformatics/toydata
+
+## To do
+Write a for loop to show us the first two lines of the fastq files in our toydata. 
+
+**NOTE**
+ - Shell prompt changes from **$** to **>**. 
+ - The **>** prompt, reminds us that we haven’t finished typing a complete command yet.
+ - Use a semicolon, **;** to separate two commands written on a single line.
+
+```{r for-loop, eval=FALSE}
+cd toydata
+for filename in *.fastq
+do
+  head -n 2 ${filename}
+done
+```
+
+ - The for loop begins with the formula for <variable> in <group to iterate over>. 
+ - The next line of the for loop is do. 
+ - The next line is the code that we want to execute. 
+ - The word done ends the loop.
+
+```{r for-loop-save-into-file, eval=FALSE}
+for filename in *.fastq
+do
+  head -n 2 ${filename} >> seq_info.txt
+done
+```
+
+ - If you notice a mistake that may prevent your loop from executing correctly, cancel the command using **Ctrl+C**
+ - Note the difference in using >> vs >. 
+ - >> means add to the end of seq_info.txt while > means rewrite to a new file every time the loop iterates
+
+## Using Basename in for loops
+ - Basename is a function in UNIX that is helpful for removing a uniform part of a name from a list of files.
+ - Basename only works when it exactly matches a string in the file.
+ - In our case, let's use basename to remove the .fastq extension from the files that we’re working with.
+
+```{r basename, eval=FALSE}
+basename testfile_R1.fastq .fastq
+
+# when string doesn't match
+basename testfile_R1.fastq .fasta
+```
+
+ - When used in a for loop, basename is very powerful. 
+ - It allows one to access just the file prefix (which can be useful for naming things).
+ 
+```{r basename-as-prefix-other-things, eval=FALSE}
+cd toydata
+for filename in *.fastq
+do
+  name=$(basename ${filename} .fastq)
+  echo ${name}
+done
+```
+
+## EXERCISE
+1. Print the file prefix of all of the .gz files in 
+/cbio/training/courses/2024/bacterial_wgs/data/data
+.
+2. Print the file prefix of all of the _R1_001.fastq.gz files in 
+/cbio/training/courses/2024/bacterial_wgs/data/data
+.
+3. Print the prefix of all sample names in 
+/cbio/training/courses/2024/bacterial_wgs/data/data, for example, the name 101-001-01_S21.
+
+
+
+## Demonstrating basename in moving files. 
+ - Change to the toydata directory
+ - Rename the two fastq files using mv so that they have the years on them, documenting when we created them.
+```{r demonstate-basename-in-file-renaming, eval=FALSE}
+for filename in *.fastq
+do
+  name=$(basename ${filename} .fastq)
+  mv ${filename}  ${name}_2024.fastq
+done
+```
+
+## EXERCISE
+- Remove _2024 from all of the .fastq files.
+
+## KEY POINTS
+ - grep is a powerful search tool with many options for customization.
+ - >, >>, and | are different ways of redirecting output.
+ - > - redirects a command’s output to a file.
+ - >> - redirects a command’s output to a file without overwriting the existing contents of the file.
+ - command_1 | command_2 - redirects the output of the first command as input to the second command.
+ - for loops are used for iteration.
+ - basename gets rid of repetitive parts of names.
+ 
+## Writing scripts and working with data
+ - We have been writing to a file or editing a file by > and >>.
+ - These are usefull if we are directing standard output to files.
+ - Often we want to write (from scratch) or edit a file, different **editors** are used.
+ - These include 
+   - **text editors** like *nano* (Notepad++), *vim*, *Emacs*, and *Gedit*; 
+   - Integrated Development Environments (IDEs) like Visual Studio (VS) Code, PyCharm, Eclipse, NetBeans, IntelliJ IDEA; and 
+   - other editors such as Sublime Text, Atom, Geany
+ - nano can only work with plain character data, not tables, images, or any other human-friendly media. 
+ - Thus, nano may not be powerful enough/flexible enough for the work after this training.
+ - For this course we use the *nano* editor since it's Simple and user-friendly, command-line based and suitable for beginners.
+ - Take note of the relative or full/absolute path when using nano.
+ - Let's create a file to take notes about what we’ve been doing with the data files in toydata.
+ - In bioinformatics, it is good practice to create a README.txt file. 
+ - It describes the data files in the directory or documents how the files in that directory were generated. 
+ - In short, README.txt is a file that we/others should read to understand the information in that directory.
+ - Change your working directory to toydata using cd, then 
+ - Run nano to create a file called README.txt
+ - Let’s type in a few lines of text. Describe what the files in this directory are or what you’ve been doing with them. 
+ - Once we’re happy with our text, press Ctrl-O to write our data to disk. 
+ - When asked what file we want to save this to: press Return to accept the suggested default of README.txt.
+ - Once changes are saved, quit the nano editor by Ctrl-X to return to the shell.
+```{r readme.txt, eval=FALSE}
+cd toydata
+nano README.txt
+```
+
+- Use less or cat to check the contents of README.txt, or open it up again and edit it with nano.
+
+## Exercise
+- Open README.txt and add the date to the top of the file and save the file.
+
 
 
 ## Why checking the quality of WGS data

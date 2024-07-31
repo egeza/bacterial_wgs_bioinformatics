@@ -184,7 +184,7 @@ cd ephie
 
 The data for this training are bacterial isolates that were cultured and sequenced. Each isolate have two result files in fastq format.
 ```{bash, eval=FALSE}
-cd /cbio/training/courses/2024/bacterial_wgs/data
+cd /cbio/training/courses/2024/bacterial_wgs/data/data
 # Wilcards
 ls *.gz
 ls *_R1_001.fastq.gz
@@ -194,8 +194,8 @@ ls *_R1_001.fastq.gz
 ## Exercise
 Do each of the following tasks from your current directory using a single ls command for each:
 
- 1. List all of the files in /cbio/training/courses/2024/bacterial_wgs/data that start with ‘101’.
- 2. List all of the files in /cbio/training/courses/2024/bacterial_wgs/data that contain ‘6’.
+ 1. List all of the files in /cbio/training/courses/2024/bacterial_wgs/data/data that start with ‘101’.
+ 2. List all of the files in /cbio/training/courses/2024/bacterial_wgs/data/data that contain ‘6’.
  
 ```{bash, eval=FALSE}
 pwd
@@ -216,7 +216,7 @@ git clone https://github.com/egeza/bacterial_wgs_bioinformatics.git
 cd bacterial_wgs_bioinformatics
 ls 
 cd toydata
-cat tesftfile_R1.fastq
+cat testfile_R1.fastq
 ```
 *cat* is a terrific program, but when the file is really big, it can be annoying to use. The program, less, is useful for this case. less opens the file as read only, and lets you navigate through it. The navigation commands are identical to the man program.
 ```{bash less, eval=FALSE}
@@ -250,74 +250,3 @@ Let's view the first complete read in one of the files in our dataset by using h
 head -n 4 tesftfile_R1.fastq
 ```
 
-## Creating, moving, copying, and removing
-```{bash create-move-copy-remove, eval=FALSE}
-# Create a copy of 105-008-01_S1
-cp tesftfile_R1.fastq tesftfile-copy_R1.fastq
-ls -F
-## move one step up
-cd ../
-
-# creating a dir
-mkdir backup
-
-mv toydata/tesftfile-copy_R1.fastq backup/
-ls backup
-
-cd backup
-mv tesftfile-copy_R1.fastq tesftfile-backup_R1.fastq
-```
-
-### File Permissions
-We’ve now made a backup copy of our file, now there are two copies of our file, it doesn’t make us safe. To make sure we can’t accidentally mess up this backup file, we’re going to change the permissions on the file so that it is read only  (i.e. not editable).
-
-View the current permissions on a file:
-```{bash view-permissions, eval=FALSE}
-ls -l
-```
-
-```{r, include=FALSE}
-library(knitr)
-```
-
-```{r explainining-permissions, echo=FALSE}
-include_graphics("C:/Users/epi/Documents/BST_projects/2024/trainings/bacterial_wgs_bioinformatics/permissions.PNG")
-```
-
-Let's now change the file permissions so that we won't be able to edit it
-
-```{bash view-permissions-change, eval=FALSE}
-chmod -w tesftfile-backup_R1.fastq
-ls -l
-
-# try removing file
-rm tesftfile_R1-backup.fastq
-
-cd ..
-rm -r backup
-```
-
-## Exercise
-Starting in the toydata/ directory, do the following:
-
- 1. Make sure that you have deleted your backup directory and all files it contains.
- 2. Create a backup of each of your FASTQ files using cp. (Note: You’ll need to do this individually for each of the two FASTQ files. We haven’t learned yet how to do this with a wildcard.)
- 3. Use a wildcard to move all of your backup files to a new backup directory.
- 4. Change the permissions on all of your backup files to be write-protected.
-
-## Searching files
-```{bash, eval=FALSE}
-grep "TTTTCTTTTT" toydata/tesftfile_R1.fastq
-grep -B1 -A2 TTTTCTTTTT toydata/1tesftfile_R1.fastq
-```
-
-## EXERCISE
-Search for the sequence GNATNACCACTTCC in the tesftfile_R1.fastq file. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
-
-Search for the sequence AAGTT in both FASTQ files. Have your search return all matching lines and the name (or identifier) for each sequence that contains a match.
-
-KEY POINTS
-You can view file contents using less, cat, head or tail.
-The commands cp, mv, and mkdir are useful for manipulating existing files and creating new directories.
-You can view file permissions using ls -l and change permissions using chmod.
-The history command and the up arrow on your keyboard can be used to repeat recently used commands.
