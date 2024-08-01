@@ -11,7 +11,7 @@
 
 
 
-<title>Day 2: Quality checking and control and identifying species</title>
+<title>Day 1: Bacterial WGS training</title>
 
 <script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
 // be compatible with the behavior of Pandoc < 2.8).
@@ -1619,27 +1619,168 @@ display: none;
 
 
 
-<h1 class="title toc-ignore">Day 2: Quality checking and control and
-identifying species</h1>
+<h1 class="title toc-ignore">Day 1: Bacterial WGS training</h1>
 
 </div>
 
 
-<div id="objectives" class="section level2">
-<h2>Objectives</h2>
+<div id="objectives" class="section level1">
+<h1>Objectives</h1>
 <ol style="list-style-type: decimal">
-<li>Creating, moving, copying, and removing</li>
-<li>Redirecting output</li>
-<li>For loops</li>
-<li>Demonstrating basename in moving files</li>
-<li>Writing scripts and working with data</li>
-<li>Describe reasons for quality checking in bacterial WGS data.</li>
-<li>Inspect and interpret the quality of bacterial WGS data</li>
-<li>Identify contamination (species)</li>
+<li>Describe key reasons for using shell</li>
+<li>Navigate the file system using the command line</li>
+<li>Access and read help files for bash programs and use the help
+function to identify useful command options</li>
+<li>Use command line to navigate files and directories</li>
+<li>Read and create, copy, move/rename files/directories</li>
+<li>Search information in a file, print results of a command line to a
+file, construct command pipelines</li>
+<li>Use for loops to run command for several input files</li>
+<li>Write and execute a shell script (use of editors to modify files,
+use chmod to make a script executable)</li>
 </ol>
 </div>
-<div id="day-1-recap" class="section level2">
-<h2>Day 1 recap</h2>
+<div id="the-shell" class="section level1">
+<h1>The Shell</h1>
+<p>We interact with a computer operating system (OS) in two ways:</p>
+<ol style="list-style-type: decimal">
+<li>Graphical User Interface (GUI)
+<ul>
+<li>GUI is the most poular (default for most software, windows and Mac
+OS).</li>
+<li>We see and interact with visual representation of files, folders and
+apps.</li>
+</ul></li>
+<li>Command Line Interface (CLI)
+<ul>
+<li>text representation of software, files, folders, input and
+output</li>
+</ul></li>
+</ol>
+<div id="reasons-for-using-a-shell" class="section level2">
+<h2>Reasons for using a shell</h2>
+<p>We use the shell for the following reasons:</p>
+<ul>
+<li>Most bioinformatics tools are not GUI. In GUI tool features and
+parameters are not accessible, e.g BLAST.</li>
+<li>Shell makes work reproducible: CLI keeps a record of every step one
+carries out, making easing the inspection application of same process to
+new data.</li>
+<li>Repetitive work can be automated enhancing efficiency, simplifies
+testing of a wide range of parameters.</li>
+<li>Minimizes errors - when humans do the same thing many times they are
+likely to make mistakes.</li>
+<li>Enables easy access to remote computers or cloud computing.</li>
+</ul>
+</div>
+<div id="accessing-a-shell" class="section level2">
+<h2>Accessing a shell</h2>
+<ul>
+<li>On a Mac or Linux machine - through a program called
+<em>Terminal</em> (already available on your computer).</li>
+<li>The Terminal - is a window into which we will type commands.</li>
+<li>On Windows - download a separate program, there are several but we
+use <em>Git Bash</em> (<a href="https://git-scm.com/download/win" class="uri">https://git-scm.com/download/win</a>) for this
+training.</li>
+</ul>
+<p>To save time and avoid storage problems, we are using a remote server
+<a href="https://www.ilifu.ac.za/" class="uri">https://www.ilifu.ac.za/</a> where all the necessary data
+and software available. Today, We will learn the basics of the shell by
+manipulating some data files.</p>
+</div>
+</div>
+<div id="accessing-ilifu" class="section level1">
+<h1>Accessing ilifu</h1>
+<ul>
+<li>Each participant have an <strong>ilifu</strong> user account.</li>
+<li>Log-in to the remote server <strong>ilifu</strong> using</li>
+</ul>
+<pre class="bash"><code>ssh username@slurm.ilifu.ac.za</code></pre>
+<p>After logging in, you will see a screen showing something like
+this:</p>
+<pre class="bash"><code>Welcome to Ubuntu 22.04.3 LTS (GNU/Linux 5.15.0-91-generic x86_64)
+Last login: Mon Jul 29 03:09:35 2024 from 41.114.207.73
+
++---------------------------------------------------------------------+
+|    _ _ _  __                                                        |
+|   (_) (_)/ _|_  _     Welcome to the ilifu SLURM Cluster            |
+|   | | | |  _| || |    Please familiarise yourself with the list     |
+|   |_|_|_|_|  \_,_|    of recommendations below.                     |
+|                                                                     |
+| DOs:                                                                |
+| * try run jobs using sbatch rather than interactive jobs            |
+| * cleanup unused files when not needed                              |
+| * set --time, --mem, --account parameters when submitting jobs,     |
+|   accurate description of job parameters improves the performance   |
+|   of the SLURM scheduler                                            |
+|                                                                     |
+| DO NOTs:                                                            |
+| * run software on the login-node                                    |
+| * transfer large data on the login-node, use transfer.ilifu.ac.za   |
+|   (accessed via ssh) to do this                                     |
+| * copy large files to /users directory                              |
+| * leave data in /scratch3 as this space is limited. After           |
+|   processing remove data that is not required and move files        |
+|   to your project directory                                         |
+|                                                                     |
+| User documentation is available at https://docs.ilifu.ac.za/        |
+|                                                                     |
+| For any queries or if you need help please contact the support team |
+| at support@ilifu.ac.za                                              |
+|                                                                     |
+| Please login to https://reports.ilifu.ac.za/ and make sure your     |
+| account is up to date as well as to view usage summaries.           |
+|                                                                     |
++---------------------------------------------------------------------+
+
+Valid Slurm Accounts for user username on ilifu-slurm2021:
+  b16-cbio-ag
+
+Change your default account with:
+  sacctmgr modify user name=username set DefaultAccount=&lt;account&gt;
+Running job count: 0
+Pending job count: 0
+
+Run the &quot;shelp&quot; command to display this message.
+
+username@slurm-login:~$</code></pre>
+</div>
+<div id="navigating-your-file-system" class="section level1">
+<h1>Navigating your file system</h1>
+<p>The file system is part of the OS that manages files and directories.
+It organizes our data into files, which hold information, and
+directories (also called “folders”), which hold files or other
+directories.</p>
+<p>Several commands are frequently used to create, inspect, rename, and
+delete files and directories.</p>
+<pre class="bash"><code>$</code></pre>
+<p>The dollar sign is a prompt, which shows us that the shell is waiting
+for input. Your shell may use a different character as a prompt and may
+add information before the prompt. When typing commands, do not type the
+prompt, only the commands that follow it.</p>
+<p>Let’s find out where we are by on the system “print working
+directory”</p>
+<pre class="bash"><code>pwd</code></pre>
+<p>Let’s look at how our file system is organized by running ls, which
+stands for “listing”:</p>
+<pre class="bash"><code>ls</code></pre>
+<pre class="bash"><code>ls /cbio/training/courses/2024/bacterial_wgs/</code></pre>
+<p><strong>NOTE:</strong> Anything with a “/” after it is a directory.
+Things with a “*” after them are programs. If there are no decorations,
+it’s a file.</p>
+<p>ls has lots of other options. To find out what they are, we can
+type:</p>
+<pre class="bash"><code>man ls</code></pre>
+<p>man (short for manual) displays detailed documentation (also referred
+as man page or man file) for bash commands. Scroll through the file
+using the keyboard’s down arrow or use the Space key to go forward one
+page and the b key to go backwards one page. When you are done reading,
+hit q to quit.</p>
+<p>The command to change locations in our file system is cd (“change
+directory”).</p>
+<pre class="bash"><code>cd</code></pre>
+<div id="key-points" class="section level2">
+<h2>Key points</h2>
 <ul>
 <li>The shell facilitates efficiency by using CLI instead of GUI.</li>
 <li>Useful commands for navigating the file system include: ls, pwd, and
@@ -1647,482 +1788,124 @@ cd.</li>
 <li>Most commands take options (flags) which begin with a -.</li>
 <li>Tab completion can reduce errors from mistyping and make work more
 efficient in the shell.</li>
-<li>We can view file contents using less, cat, head or tail.</li>
-<li>The commands cp, mv, and mkdir are useful for manipulating existing
-files and creating new directories.</li>
-<li>One can view file permissions using ls -l and change permissions
-using chmod.</li>
-<li>The history command and the up arrow on your keyboard can be used to
-repeat recently used commands.</li>
 </ul>
 </div>
-<div id="creating-moving-copying-and-removing" class="section level2">
-<h2>Creating, moving, copying, and removing</h2>
-<pre class="bash"><code># Create a copy of 105-008-01_S1
-cp tesftfile_R1.fastq tesftfile-copy_R1.fastq
-ls -F
-## move one step up
+<div id="relative-and-full-or-absolute-path" class="section level2">
+<h2>Relative and Full (or Absolute) path</h2>
+<p>Directories can be specified using either a relative path or a full
+absolute path. The directories on the computer are arranged into a
+hierarchy. The full path tells you where a directory is in that
+hierarchy. Navigate to the home directory, then enter the pwd
+command.</p>
+<pre class="bash"><code>cd /users/username
+pwd</code></pre>
+<p>This is the full name of your home directory. username is a directory
+in home which is a directory in /. More on root and home in the next
+section.</p>
+<pre class="bash"><code>cd ~/
+pwd
+## Absolute
+cd /users/ephie
+pwd
+
+# Relative
 cd ../
-
-# creating a dir
-mkdir backup
-
-mv toydata/tesftfile-copy_R1.fastq backup/
-ls backup
-
-cd backup
-mv tesftfile-copy_R1.fastq tesftfile-backup_R1.fastq</code></pre>
-<div id="file-permissions" class="section level3">
-<h3>File Permissions</h3>
-<p>We’ve now made a backup copy of our file, now there are two copies of
-our file, it doesn’t make us safe. To make sure we can’t accidentally
-mess up this backup file, we’re going to change the permissions on the
-file so that it is read only (i.e. not editable).</p>
-<p>View the current permissions on a file:</p>
-<pre class="bash"><code>ls -l</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA88AAAEICAYAAABh+cbmAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAAEnQAABJ0Ad5mH3gAAILYSURBVHhe7b0FlFzF1r/9B4K7uwS34MGCfGhwdwkECO4SnItDCO4SXIIEd31xl0C4BAluARKCBgv3fOupqeqprqkj3dMz09Pze9baK5k6VadPH+vate3/JUIIIYQQQgghhMhEyrMQQgghhBBCCJGDlGchhBBCCCGEECIHKc9CCCGEEEIIIUQOUp6FEEIIIYQQQogcpDwLIYQQQgghhBA5SHkWQgghhBBCCCFykPIshBBCCCGEEELkIOVZCCGEEEIIIYTIQcqzEEIIIYQQQgiRg5RnIYQQQgghhBAiBynPQgghhBBCCCFEDlKehRBCCCGEEEKIHKQ8CyGEEEIIIYQQOUh5FkIIIYQQQgghcpDyLIQQQgghhBBC5CDlWQghhBBCCCGEyEHKsxBCCCGEEEIIkYOUZyGEEEIIIYQQIgcpz0IIIYQQQgghRA5SnoUQQgghhBBCiBykPAshhBBCCCGEEDlIeRZCCCGEEEIIIXKQ8iyEEEIIIYQQQuQg5VkIIYQQQgghhMhByrMQQgghhBBCCJGDlGchhBBCCCGEECIHKc9CCCGEEEIIIUQOUp6FEEIIIYQQQogcpDwLIYQQQgghhBA5SHkWQgghhBBCCCFykPIshBBCCCGEEELkIOVZCCGEEEIIIYTIQcqzEEIIIYQQQgiRg5RnIYQQQgghhBAiBynPQgghhBBCCCFEDlKehRBCCCGEEEKIHKQ8CyGEEEIIIYQQOUh5FkIIIYQQQgghcpDyLIQQQgghhBBC5CDlWQghhBBCCCGEyEHKsxBCCCGEEEIIkYOUZyGEEEIIIYQQIgcpz0IIIYQQQgghRA5SnoUQQgghhBBCiBw6jfL8+eefJ99++639SwghRC14++23jQghhBBCiGzaRHn+66+/kk8//TR58cUXkyFDhiTnnXdecuaZZyZXXHFFcuuttyYPPfRQMnr0aNu7Cbb9v//3/5LDDjvMtpSz9dZbJ7fffrv9S4jG5ptvvklef/315P/+7/9K8sknn9itjQ3vhtNPPz35z3/+kzz11FO2tf145plnkptvvjkZN26cbWls5plnnmSxxRazfwkhhBBCiDRqrjwz4Z1uuumMIpwn33//vR2VmMmba//zzz9tazO77LJLsu+++9q/2p5ff/01ueuuu+xfQrQfLDz5z4kvKDo77LBDctlll5l7tBE5//zzS9931llnta3tR//+/c1nzzXXXMmXX35pWxsTFmXcuf77779tqxBCCCGEiFFz5XmDDTYoTcay5P/7//6/5Oeff7ajkmTPPfc07VNMMYVtKYf+vXr1sn+1PVi6OZ7777/ftgjRPvgKTZbMN998ZrGq0fjuu++SOeecM+nWrZvxSGlvUJhRnKeeeuqGt/Y/8sgjpftJYTFCCCGEENnUXHn2LcjIjDPOmGyyySbGajxgwIDk3nvvTd5//33bu5zrr78+dQK34oorJssss4z9q2354YcfSse/8cYb21Yh2odrr722dP/NPPPMRkFGWGDacMMNS9ucfPTRR3akEJXB+9jdR//9739tqxBCCCGEiFFz5XmqqaYqTcZqaRVbcsklk4UXXtj+1bY8//zzpe9Q6+8hRB7cb+7ewz075KKLLiq7P48++mi7RYjKuO2220r30bPPPmtbhRBCCCFEjJoqz7hhu4nYbLPNZluLwVjimkeNGmVbyllooYWSueee2/6VDknKUCa23HJLY8FL218WzoXcl7POOsskcXKQzKkIWHNww/VxCaB8QWF/7733kpEjR1Yce/joo48mhx9+eLLddtslDz/8sG0VnRUXc4twb8TwFey+ffva1pZwn7K/9ddf39wjRe7bf/75J/n444/L7s+xY8farc389NNPpt8rr7xS1nf48OG2RzM83xwzcuGFFxZ+frJ48MEHkyuvvNJ4tJCIMG+fTzzxRHLTTTclZ5xxhhnH+DT4HkXgeeX543tdc801JhliEXjW7777bnMcp512WnLuuecmN9xwgzmmMJliNbzxxhvJnXfeadzeObZhw4bZLeXwme4+4njSID8F20n+yHuVuPwi4E3krvsll1xSluciBi7zJIZ0Y3Ar98N70hgxYoTJUcHxvfDCC4XyAZBbg7Acjot7YvDgwXaLEEIIIUScmirPKIpuIkaMciU4V9VbbrnFtpSD4owLeBYHHHBA6fOdEBdaSeIvJlPhPpxMPvnkZkI3ZswY8zcTriyYnOFqTl8f9uHvNybEXONSmQXuuihF4di99967YZNJdQX8+zhLiWOBij7kGQj55ZdfootAyFFHHWV7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//779f4QQgghRCZbbLFFSUGm1O0BBxyQrL/++skUU0xRavelsxj2llpqKXO8yyyzjG1pTKQ8B3zwwQf2f0IIUZyNN944ueaaa+xfQgghhBAtWWKJJYySudhii9mWZih/u/POO5cpz1tvvbXdWt9MM800qd+rkZDyHPDGG2/Y/wkhRDH++ecf84Ox77772hYhhBBCiJZMOumkZs4w//zz25aWXHjhhSXlGSGhWBqPPvqo6X/TTTclo0ePtq3Z/Prrr8kLL7yQXHbZZUb4P21FIW77o48+Sl588UXjdcfxuWOdb775bK/GRMpzwNNPP23/J4QQxRg1apT5wejZs6dtEUIIIYQohyzbTslEslhppZVK/WKZuF9//XXj9ebvb84550wuuugi26MlKLpkxZ5tttnKxiFYxPPCzz788MMWnxnK7LPPbns3JlKeA4hbFEKISqDchPvREEIIIYSI8eOPP5Ypmlhu03Cln5AffvjBtjZx7733JjPMMEPZvnzZc889bc9mrr322mSeeeaJ9ney7rrrJn///bcdUY5/PFky/fTT2xGNiWZ6AYMHD7b/E0KIYrz55pulH423337btgohhBBCNPPVV1+VKZrnnnuu3VKOr6iuttpqtrWJTz/9tEwJXmeddZK99947Oe+885Lbb7+91H7zzTfbEU3cc889yfnnn58ccsghJo46rVzWJZdcYkc0M3bs2LI+PXr0SHbaaafkqKOOarEfEp81MlKeA6688kr7PyGEKIYf63PDDTfYViGEEEKIZnB79hVNhHhlB9ZhMnD724lp9tl1111L21CyQ8jczTZKR+Xx888/m1hpt7+0cccee2xpO27boXv32muvXdrerVs329qYSHkOSFsBEkKINAj3cD8ahx9+uG0VQghBjCcup4S3DB06NHnuueeSBx980Hj6kajojDPOMApAW8kJJ5yQHH/88clxxx1nFIBjjjkmOfroo43F7MgjjzQ1d4844gjz7j7ssMOSQw891FjmDj744OSggw5KDjzwQFNKaP/990/2228/kxhyn332MZa+vfbay7jH9uvXL9ljjz2M7L777sluu+2W9O3b1yg5u+yyS9KnTx+TQRlL3Y477mjq926//fbJdtttl2y77bbJNttsYyyBW221VbLllluaUkabb755stlmmyWbbrppsskmmxiFZaONNjKKzQYbbGAU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ScqzEAFFki9+88039n/pjB49ulXenFtvvXUyxRRTSIGuECnPAbzg//e//9m/hBBCCCFENfz4449SnoXwOPXUU5PFFlssGTNmjG1pydVXX22eGySLPffcs+pni7K8rob/4MGDbWs58hSNI+U5gJvw66+/tn8JIYQQQohqGDVqlJRnITxcDol7773XtrRk9tlnLynPF154oW1tSffu3at+tsaNG2f236NHD2PBjkGopUoUtkTKcwA34euvv27/EkIIIYQQ1YDlSsqzEM3cfvvt5pk49NBDbUs5t912W0lxRjbffHO7pRyU2tY+W8OHD7f/a8kVV1xh9p+lvHdVpDwHcBNK4iKEEEIIUZTvvvuu1RN8IRqJ//u//zPPxKKLLmpbyjnggAPMdifTTz+9SdoYcuONN5rtacp1a1lhhRXM/ueZZ57kgw8+sK0CpDwH8IL3b1pJswghhBBCFOXbb7818wcpz0I0QSIwN6+OuUTPO++8pe1OHnroIbu1mX333ddsO+KII2xLS0iA/OKLLyaffvpp8tdff9nWZlDkP/roI/tXMy+//HLZ53fr1i1Zb731krPPPjsZO3as7VUOIRrXXnttsuWWWyZHH320+dxGRRpRADeSpFzcwyOEEEIIURSnKEh5FqKZqaee2jwX55xzjm1pYtiwYaU5ty9HHXWU7dHMEkssYbZdfvnltqUJ5u1k0Z5vvvla7GeppZZKTjzxRNszSVZffXVj6Q457LDDWox18vbbb9tezaAoL7zwwi367r333lGreWdHGpHIxT0EQgghhBBFwfLF/EHKsxDNLL/88tHn4pprrinNuX1ldOWVV7Y9mvjll19K2x5//HHb2sRuu+1W2hYKLt4jRoww/f7+++9Se0iaF27Pnj1tj2YeeOCBZNppp432dxKzbndmpBGJXNzNL4QQQghRlC+++MLMH6Q8C9HMzjvvbJ6LSSed1LY0ccghh5Tm3DfccEMy2WSTlf52Si/4XqFhjeZevXqVtjlBab7++uttjyYoleW2h9bh//znP2XjZ5ttNtMW8tZbbyXTTDNNqd8OO+xg+iEuZhpZdtll7YjGQBqRyMXd/EIIIYQQRfn888/N/EHKsxDNUOvZza1feukl25oka6+9tmmbcMIJTbI9X4nFKu3A3Zu28ccf37Y0M8MMM5TGIOeee67dUo7zCkFGjhxpW5vANdttQ4FPK1e12WablfrFlOsdd9yxtP2uu+6yrZ0faUQiF3fjCyGEEEIUhURFzB/qRXl+8sknkwcffDC58847k5tvvjkZNGhQctFFFyUDBgwwk//jjjvOxJeShAkr4IEHHmgSM+25557J7rvvnuyyyy7JTjvtlGy33XbJVlttZSx6G2+8cbLBBhsk6667brLmmmua79qIssYaa5jvt9Zaaxklb5111jF1gEkktf7665tzsOGGG5rzsckmmySbbrqpUa44RySR4nwRi7vNNtuY87f99tsbSyUKFue0T58+5vzuuuuuSd++fY378R577JH069fPnP+99trLxNByPfbbb79k//33N/G6XKODDz7YXC/KPxGve/jhhyf9+/dPjjzySHM9SWB1zDHHmOt7/PHHJyeccIK53ieffHJy+umnm+uPQnrBBRckF198sYkj5t4gARZZrW+55RZTYgoFkPrM3EOPPvpo8sQTTxgr8NChQ40y+ueff9o7LZshQ4aU5tbnnXeebU2SmWee2bRttNFG5u+nnnqq1I9z5uC80LbAAgvYlmYmnnji0pgsi++HH35Y6udbtR1cc7YtvfTStqUclwwQwTIdw7eQx5Trzoo0IpGLu/GFEEIIIYry8ccfm/kDE/F6wCkdksplvPHGM5bOCSaYwGRfxjo60UQTGWUN92MslJNPPnkyxRRTJFNOOWUy1VRTmcRYuPUSEzvddNMZq+iMM86YzDTTTEZRnGWWWZJZZ53VKF+zzz57MscccyRzzTVXMvfcc5sSSd27dzfZp0l+Nf/88xtlccEFF0wWWmihZJFFFjHlnhZbbLFk8cUXT3r06GGSaC255JImMRZKH8rjcsstZ2J1iTPGlXjFFVdMVlppJRNHjIvzKquskqy22momeRb3KQsDLAawCIDiz0IAiwIsErBgwAICwt/0YWGARQFcsVHoUdBxuY4l1nJQ+smdVxYN4Ouvvy61udrK48aNM+eENs4vYRDA96KN4wvh/Lr9sNiQBi7Xrl/sWPlebGORIwYZwN14PvP++++3WxKziIByzuKD61Mv74BaII1I5OJufCGEEEKIomDRqqeJM8fRSJN40XlhgYFng8UDstLfd999pfn28OHDba/EWOddO14SuGG7v8NM2+Bn2UZ5TeOFF14o9eP/IVj62YbVPsZNN91UGl9EZHkWXQp34wshhBBCFMW5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" width="488" /></p>
-<p>Let’s now change the file permissions so that we won’t be able to
-edit it</p>
-<pre class="bash"><code>chmod -w testfile-backup_R1.fastq
-ls -l
-
-# try removing file
-rm testfile_R1-backup.fastq
-
-cd ..
-rm -r backup</code></pre>
+pwd
+## change wkdir 
+cd ephie</code></pre>
+<p><strong>NOTE</strong> - The /, ~, and .. characters represent
+important navigational shortcuts. - Hidden files and directories start
+with . and can be viewed using ls -a. - Relative paths specify a
+location starting from the current location, while absolute paths
+specify a location from the root of the file system.</p>
 </div>
 </div>
+<div id="working-with-files" class="section level1">
+<h1>Working with files</h1>
+<p>The data for this training are bacterial isolates that were cultured
+and sequenced. Each isolate have two result files in fastq format.</p>
+<pre class="bash"><code>cd /cbio/training/courses/2024/bacterial_wgs/data/data
+# Wilcards
+ls *.gz
+ls *_R1_001.fastq.gz</code></pre>
+<ul>
+<li><ul>
+<li>a wildcard to represent any number of characters</li>
+</ul></li>
+</ul>
 <div id="exercise" class="section level2">
 <h2>Exercise</h2>
-<p>Starting in the toydata/ directory, do the following:</p>
+<p>Do each of the following tasks from your current directory using a
+single ls command for each:</p>
 <ol style="list-style-type: decimal">
-<li>Make sure that you have deleted your backup directory and all files
-it contains.</li>
-<li>Create a backup of each of your FASTQ files using cp. (Note: You’ll
-need to do this individually for each of the two FASTQ files. We haven’t
-learned yet how to do this with a wildcard.)</li>
-<li>Use a wildcard to move all of your backup files to a new backup
-directory.</li>
-<li>Change the permissions on all of your backup files to be
-write-protected.</li>
+<li>List all of the files in
+/cbio/training/courses/2024/bacterial_wgs/data/data that start with
+‘101’.</li>
+<li>List all of the files in
+/cbio/training/courses/2024/bacterial_wgs/data/data that contain
+‘6’.</li>
 </ol>
-</div>
-<div id="searching-files" class="section level2">
-<h2>Searching files</h2>
-<pre class="bash"><code>grep &quot;TTTTCTTTTT&quot; toydata/testfile_R1.fastq
-grep -B1 -A2 TTTTCTTTTT toydata/testfile_R1.fastq</code></pre>
-</div>
-<div id="exercise-1" class="section level2">
-<h2>EXERCISE</h2>
-<ol style="list-style-type: decimal">
-<li><p>Search for the sequence GNATNACCACTTCC in the testfile_R1.fastq
-file. Have your search return all matching lines and the name (or
-identifier) for each sequence that contains a match.</p></li>
-<li><p>Search for the sequence AAGTT in both FASTQ files. Have your
-search return all matching lines and the name (or identifier) for each
-sequence that contains a match.</p></li>
-</ol>
-</div>
-<div id="key-points" class="section level2">
-<h2>KEY POINTS</h2>
-<ul>
-<li>We can view file contents using less, cat, head or tail.</li>
-<li>The commands cp, mv, and mkdir are useful for manipulating existing
-files and creating new directories.</li>
-<li>One can view file permissions using ls -l and change permissions
-using chmod.</li>
-<li>The history command and the up arrow on your keyboard can be used to
-repeat recently used commands.</li>
-</ul>
-</div>
-<div id="redirecting-output" class="section level2">
-<h2>Redirecting output</h2>
-<ul>
-<li>We can save the standard output by using “&gt;”</li>
-</ul>
-<pre class="bash"><code>grep &quot;@&quot; toydata/testfile_R1.fastq &gt; headers.txt</code></pre>
-<p>We can count how many sequences are in our testfile_R1.fastq by</p>
-<pre class="bash"><code>wc headers.txt</code></pre>
-<p><strong>wc</strong> stands for word count. The command counts the
-number of words, lines and characters in a file.</p>
-</div>
-<div id="exercise-2" class="section level2">
-<h2>EXERCISE</h2>
-<ol style="list-style-type: decimal">
-<li>How many sequences are there in testfile_R2.fastq? Remember that
-every sequence is formed by four lines.</li>
-<li>How many sequences in testfile_R2.fastq contain at least 3
-consecutive Ns?</li>
-</ol>
-<p>It is important to make sure the current command does not overwrite
-previous command especially when saving to a file. For example, perform
-the following operations:</p>
-<pre class="r"><code>grep -B1 -A2 NNNNNNNNNN testfile_R1.fastq &gt; bad_reads.fastq
-wc -l bad_reads.fastq</code></pre>
-<pre class="r"><code>grep -B1 -A2 NNNNNNNNNN toydata/testfile_R2.fastq &gt; bad_reads.fastq
-wc -l bad_reads.fastq</code></pre>
-<p>To avoid overwriting, use the command &gt;&gt; (known as the “append
-redirect”). It will append new output to the end of a file, rather than
-overwriting it.</p>
-<pre class="r"><code>grep -B1 -A2 NNNNN toydata/testfile_R1.fastq &gt;&gt; bad_reads.fastq
-wc -l bad_reads.fastq
+<pre class="bash"><code>pwd
 
-grep -B1 -A2 NNNNN toydata/testfile_R2.fastq &gt;&gt; bad_reads.fastq
-wc -l bad_reads.fastq</code></pre>
-<p>The above commands can be combined to a single line code by using</p>
-<pre class="r"><code>grep -B1 -A2 NNNNN toydata/*.fastq &gt; bad_reads.fastq
-wc -l bad_reads.fastq</code></pre>
-<ul>
-<li>This far we intended to count the number of reads and not the
-contents of the file that we were creating.</li>
-<li>To avoid cluttering up our workspace, we use the pipe command
-(|).</li>
-<li>The | take the output that is scrolling by on the terminal and uses
-that output as input to another command.</li>
-<li>We can redirect our output from our the <strong>grep</strong> call
-through the less command.</li>
-<li>We can redirect our output from our the <strong>grep</strong> search
-to the wc -l command</li>
-<li>Always check if the the your output matches your expectations:
-<em>addition of blank lines</em></li>
-<li>Output include “–” a default action for grep that separates groups
-of lines matching the pattern, and groups of lines which do not match
-the pattern so that they are not displayed.</li>
-<li>Fix the issue by redirecting the grep output to a second instance of
-grep.</li>
-<li>-v option of grep search stands for –invert-match.</li>
-<li>It means grep will now only display the lines which do not match the
-searched pattern, in this case ‘^–’.</li>
-<li>The caret (^) is an anchoring character matching the beginning of
-the line.</li>
-<li>Enclose the pattern by single quotes so that grep does not interpret
-the pattern as an extended option (starting with –).</li>
-</ul>
-<pre class="r"><code>grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | less
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | wc -l 
-# Check output matches expectation
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq &gt; bad_reads.txt
-tail bad_reads.txt
-# Fix the output by redirect to another grep
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | grep -v &#39;^--&#39; &gt; bad_reads.fastq
-tail bad_reads.fastq</code></pre>
+echo *.gz</code></pre>
 </div>
-<div id="writing-for-loops" class="section level2">
-<h2>Writing for loops</h2>
+<div id="command-history" class="section level2">
+<h2>Command history</h2>
 <ul>
-<li>Loops are key to productivity improvements through automation, they
-allow for repeated commands execution.</li>
-<li>Similarly to wildcards and tab completion, using loops also reduces
-the amount of typing mistakes.</li>
-<li>They are helpful when performing operations on several sequencing
-files, e.g unzipping or trimming multiple files.</li>
-<li>We will use loops in this training, let’s cover the basics of them
-for now.</li>
-<li>In shell the keyword <strong>for</strong>, means repeat a command
-(or group of commands) once for each item in a list.</li>
-<li>Each time an iteration runs, an item in the list is assigned in
-sequence to the variable, and the commands inside the loop are executed,
-before moving on to the next item in the list.</li>
-<li>Call for a valuables’s value inside the loop by putting
-<strong>$</strong> in front of it.</li>
-<li>In shell programming, use of <strong>$</strong> is usually called
-“expanding” the variable as it treat the variable as a variable name and
-substitute its value in its place.</li>
-</ul>
-<pre class="r"><code>foo=&quot;myname&quot;
-echo My name is $foo
-## expanding with no space
-echo foo is $fooEFG      # doesn&#39;t work
-
-# Correct way
-echo foo is ${foo}EFG</code></pre>
+<li>Up and down arrow</li>
+<li>A few more useful shortcuts:
 <ul>
-<li>Avoid expanding problem by enclosing the variable name in braces ({
-and }.</li>
-<li>Bash treats the # character as a comment character.</li>
-<li>Any text on a line after a # is ignored by bash when evaluating the
-text as code.</li>
-<li>Ensure your working dir is bacterial_wgs_bioinformatics/toydata</li>
-</ul>
-</div>
-<div id="to-do" class="section level2">
-<h2>To do</h2>
-<p>Write a for loop to show us the first two lines of the fastq files in
-our toydata.</p>
-<p><strong>NOTE</strong> - Shell prompt changes from <strong>$</strong>
-to <strong>&gt;</strong>. - The <strong>&gt;</strong> prompt, reminds us
-that we haven’t finished typing a complete command yet. - Use a
-semicolon, <strong>;</strong> to separate two commands written on a
-single line.</p>
-<pre class="r"><code>cd toydata
-for filename in *.fastq
-do
-  head -n 2 ${filename}
-done</code></pre>
-<ul>
-<li>The for loop begins with the formula for <variable> in
-<group to iterate over>.</li>
-<li>The next line of the for loop is do.</li>
-<li>The next line is the code that we want to execute.</li>
-<li>The word done ends the loop.</li>
-</ul>
-<pre class="r"><code>for filename in *.fastq
-do
-  head -n 2 ${filename} &gt;&gt; seq_info.txt
-done</code></pre>
-<ul>
-<li>If you notice a mistake that may prevent your loop from executing
-correctly, cancel the command using <strong>Ctrl+C</strong></li>
-<li>Note the difference in using &gt;&gt; vs &gt;.</li>
-<li><blockquote>
-<blockquote>
-<p>means add to the end of seq_info.txt while &gt; means rewrite to a
-new file every time the loop iterates</p>
-</blockquote>
-</blockquote></li>
-</ul>
-</div>
-<div id="using-basename-in-for-loops" class="section level2">
-<h2>Using Basename in for loops</h2>
-<ul>
-<li>Basename is a function in UNIX that is helpful for removing a
-uniform part of a name from a list of files.</li>
-<li>Basename only works when it exactly matches a string in the
-file.</li>
-<li>In our case, let’s use basename to remove the .fastq extension from
-the files that we’re working with.</li>
-</ul>
-<pre class="r"><code>basename testfile_R1.fastq .fastq
-
-# when string doesn&#39;t match
-basename testfile_R1.fastq .fasta</code></pre>
-<ul>
-<li>When used in a for loop, basename is very powerful.</li>
-<li>It allows one to access just the file prefix (which can be useful
-for naming things).</li>
-</ul>
-<pre class="r"><code>cd toydata
-for filename in *.fastq
-do
-  name=$(basename ${filename} .fastq)
-  echo ${name}
-done</code></pre>
-</div>
-<div id="exercise-3" class="section level2">
-<h2>EXERCISE</h2>
-<ol style="list-style-type: decimal">
-<li>Print the file prefix of all of the .gz files in
-/cbio/training/courses/2024/bacterial_wgs/data/data .</li>
-<li>Print the file prefix of all of the _R1_001.fastq.gz files in
-/cbio/training/courses/2024/bacterial_wgs/data/data .</li>
-<li>Print the prefix of all sample names in
-/cbio/training/courses/2024/bacterial_wgs/data/data, for example, the
-name 101-001-01_S21.</li>
-</ol>
-</div>
-<div id="demonstrating-basename-in-moving-files." class="section level2">
-<h2>Demonstrating basename in moving files.</h2>
-<ul>
-<li>Change to the toydata directory</li>
-<li>Rename the two fastq files using mv so that they have the years on
-them, documenting when we created them.</li>
-</ul>
-<pre class="r"><code>for filename in *.fastq
-do
-  name=$(basename ${filename} .fastq)
-  mv ${filename}  ${name}_2024.fastq
-done</code></pre>
-</div>
-<div id="exercise-4" class="section level2">
-<h2>EXERCISE</h2>
-<ul>
-<li>Remove _2024 from all of the .fastq files.</li>
-</ul>
-</div>
-<div id="key-points-1" class="section level2">
-<h2>KEY POINTS</h2>
-<ul>
-<li>grep is a powerful search tool with many options for
-customization.</li>
-<li><blockquote>
-<p>, &gt;&gt;, and | are different ways of redirecting output.</p>
-</blockquote></li>
-<li><blockquote>
-<ul>
-<li>redirects a command’s output to a file.</li>
-</ul>
-</blockquote></li>
-<li><blockquote>
-<blockquote>
-<ul>
-<li>redirects a command’s output to a file without overwriting the
-existing contents of the file.</li>
-</ul>
-</blockquote>
-</blockquote></li>
-<li>command_1 | command_2 - redirects the output of the first command as
-input to the second command.</li>
-<li>for loops are used for iteration.</li>
-<li>basename gets rid of repetitive parts of names.</li>
-</ul>
-</div>
-<div id="writing-scripts-and-working-with-data" class="section level2">
-<h2>Writing scripts and working with data</h2>
-<ul>
-<li>We have been writing to a file or editing a file by &gt; and
-&gt;&gt;.</li>
-<li>These are usefull if we are directing standard output to files.</li>
-<li>Often we want to write (from scratch) or edit a file, different
-<strong>editors</strong> are used.</li>
-<li>These include
-<ul>
-<li><strong>text editors</strong> like <em>nano</em> (Notepad++),
-<em>vim</em>, <em>Emacs</em>, and <em>Gedit</em>;</li>
-<li>Integrated Development Environments (IDEs) like Visual Studio (VS)
-Code, PyCharm, Eclipse, NetBeans, IntelliJ IDEA; and</li>
-<li>other editors such as Sublime Text, Atom, Geany</li>
+<li>Ctrl+C.</li>
+<li>Ctrl+L.</li>
+<li>Ctrl+R will do a reverse-search through your command history. This
+is very useful.</li>
 </ul></li>
-<li>nano can only work with plain character data, not tables, images, or
-any other human-friendly media.</li>
-<li>Thus, nano may not be powerful enough/flexible enough for the work
-after this training.</li>
-<li>For this course we use the <em>nano</em> editor since it’s Simple
-and user-friendly, command-line based and suitable for beginners.</li>
-<li>Take note of the relative or full/absolute path when using
-nano.</li>
-<li>Let’s create a file to take notes about what we’ve been doing with
-the data files in toydata.</li>
-<li>In bioinformatics, it is good practice to create a README.txt
-file.</li>
-<li>It describes the data files in the directory or documents how the
-files in that directory were generated.</li>
-<li>In short, README.txt is a file that we/others should read to
-understand the information in that directory.</li>
-<li>Change your working directory to toydata using cd, then</li>
-<li>Run nano to create a file called README.txt</li>
-<li>Let’s type in a few lines of text. Describe what the files in this
-directory are or what you’ve been doing with them.</li>
-<li>Once we’re happy with our text, press Ctrl-O to write our data to
-disk.</li>
-<li>When asked what file we want to save this to: press Return to accept
-the suggested default of README.txt.</li>
-<li>Once changes are saved, quit the nano editor by Ctrl-X to return to
-the shell.</li>
-</ul>
-<pre class="r"><code>cd toydata
-nano README.txt</code></pre>
-<ul>
-<li>Use less or cat to check the contents of README.txt, or open it up
-again and edit it with nano.</li>
 </ul>
 </div>
-<div id="exercise-5" class="section level2">
-<h2>Exercise</h2>
-<ul>
-<li>Open README.txt and add the date to the top of the file and save the
-file.</li>
-</ul>
+<div id="examining-files" class="section level2">
+<h2>Examining Files</h2>
+<pre class="bash"><code>git clone https://github.com/egeza/bacterial_wgs_bioinformatics.git
+cd bacterial_wgs_bioinformatics
+ls 
+cd toydata
+cat testfile_R1.fastq</code></pre>
+<p><em>cat</em> is a terrific program, but when the file is really big,
+it can be annoying to use. The program, less, is useful for this case.
+less opens the file as read only, and lets you navigate through it. The
+navigation commands are identical to the man program.</p>
+<pre class="bash"><code>less tesftfile_R1.fastq
+head tesftfile_R1.fastq
+tail tesftfile_R1.fastq
+
+head -n 2 tesftfile_R1.fastq
+tail -n 2 tesftfile_R1.fastq</code></pre>
+<div id="key-action" class="section level3">
+<h3>key action</h3>
+<p>Space to go forward b to go backward g to go to the beginning G to go
+to the end q to quit</p>
 </div>
-<div id="why-checking-the-quality-of-wgs-data" class="section level2">
-<h2>Why checking the quality of WGS data</h2>
-<p>We check the quality of WGS data for the following reasons</p>
+</div>
+<div id="details-on-the-fastq-format" class="section level2">
+<h2>Details on the FASTQ format</h2>
+<p>Although it looks complicated, the fastq format can be decoded using
+the following rules about the format:</p>
 <ol style="list-style-type: decimal">
-<li>Read Quality:</li>
-</ol>
+<li>Each sequence entry consists of 4 lines</li>
+<li>Line Description
 <ul>
-<li>Base Quality Scores: helps to identify poor-quality reads that may
-need to be trimmed or discarded.</li>
-<li>Adapter Contamination - to detect and remove adapter sequences to
-prevent misalignment and incorrect variant calling (not
-applicable).</li>
-</ul>
-<ol start="2" style="list-style-type: decimal">
-<li>Contamination:</li>
+<li>Always begins with ‘@’ and then information about the read</li>
+<li>The actual DNA sequence</li>
+<li>Always begins with a ‘+’ and sometimes the same info in line 1</li>
+<li>A string of characters which represent the quality scores; must have
+same number of characters as line 2</li>
+</ul></li>
 </ol>
-<ul>
-<li>Foreign DNA - to identify contamination from other organisms’ DNA
-ensures that the sequence data accurately represents the target
-organism.</li>
-<li>Cross-Sample Contamination - to ensure no cross-sample contamination
-helps maintain the integrity of individual sample analyses.</li>
-</ul>
-<ol start="3" style="list-style-type: decimal">
-<li>Biases and Artifacts:</li>
-</ol>
-<ul>
-<li>GC Bias - to detect and correct for GC content biases (achieve
-uniform coverage across the genome).</li>
-<li>PCR Duplicates - to identify and remove PCR duplicates reducing
-biases and ensure that reads are unique and representative.</li>
-</ul>
-<ol start="4" style="list-style-type: decimal">
-<li>Resource Efficiency:</li>
-</ol>
-<ul>
-<li>Save on computational resources - High-quality data reduces the need
-for extensive computational resources to handle large amounts of
-low-quality data.</li>
-<li>Early identification and correction of quality issues saves time and
-Cost associated with re-sequencing or extensive data cleaning.</li>
-</ul>
-<ol start="5" style="list-style-type: decimal">
-<li>Reproducibility:</li>
-</ol>
-<ul>
-<li>Ensures reproducibility and comparability of results across studies
-and sequencing platforms, guaranteeing reliable results.</li>
-<li>Enhances credibility of the research by meeting scientific journals’
-publication standards.</li>
-</ul>
+<p>Let’s view the first complete read in one of the files in our dataset
+by using head</p>
+<pre class="bash"><code>head -n 4 tesftfile_R1.fastq</code></pre>
 </div>
-<div id="common-quality-control-steps" class="section level2">
-<h2>Common Quality Control Steps</h2>
-<div id="inspect-read-quality" class="section level3">
-<h3>Inspect read quality</h3>
-<ul>
-<li><p>Assess an overview of read quality use quality scores, GC
-content, and other metrics (FASTQC, MULTIQC). We run the FASTQC and
-MULTIQC</p></li>
-<li><p>Trimming and Filtering - removing adapters and low quality bases
-(TRIMMOMATIC, CUTADAPT)</p></li>
-</ul>
-</div>
-<div id="identify-contaminants" class="section level3">
-<h3>Identify contaminants</h3>
-<ul>
-<li>Check for contaminants (identify species) - use KRAKEN2 or DECONTAM
-to identify and filter out contaminant sequences.</li>
-</ul>
-</div>
-<div id="mark-and-remove-pcr-duplicates" class="section level3">
-<h3>Mark and remove PCR duplicates</h3>
-<ul>
-<li>After noting high duplication levels we remove them by PICARD or
-SAMTOOLS.</li>
-</ul>
-</div>
-<div id="coverage-analysis" class="section level3">
-<h3>Coverage Analysis:</h3>
-<ul>
-<li>Assess genome coverage and identify regions with insufficient
-coverage (BEDTools or QualiMap).</li>
-</ul>
-<p>Overall, high-quality whole genome sequencing data helps researchers
-to trust that their analyses are based on accurate, reliable, and
-complete genomic information, leading to more robust scientific
-conclusions.</p>
-<pre class="r"><code>plot(cars)</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABUAAAAPACAMAAADDuCPrAAAAz1BMVEUAAAAAADoAAGYAOjoAOmYAOpAAZmYAZpAAZrY6AAA6OgA6Ojo6OmY6ZmY6ZpA6ZrY6kJA6kLY6kNtmAABmADpmOgBmOjpmZjpmZmZmZpBmkLZmkNtmtttmtv+QOgCQZgCQZjqQZmaQkGaQkLaQtraQttuQtv+Q2/+2ZgC2Zjq2kDq2kGa2tpC2tra2ttu227a229u22/+2///bkDrbkGbbtmbbtpDbtrbb25Db27bb29vb2//b/7bb////tmb/25D/27b/29v//7b//9v///+YQ9N6AAAACXBIWXMAAB2HAAAdhwGP5fFlAAAgAElEQVR4nO3df3/TVr7gcYfCXlJaupcunQxTWGYHbsOAe6EpsKRLSOs8/8e0ku04dmyS6Bv9OEfn/f6jJX4lworkD5J1dDw5AyBkMvQTAMiVgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIECShAkIACBAkoQJCAAgQJKECQgAIEdR7Q2fHH6XT66/Hnrv8i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" width="672" /></p>
-<p>Add a new chunk by clicking the <em>Insert Chunk</em> button on the
-toolbar or by pressing <em>Ctrl+Alt+I</em>.</p>
-<p>When you save the notebook, an HTML file containing the code and
-output will be saved alongside it (click the <em>Preview</em> button or
-press <em>Ctrl+Shift+K</em> to preview the HTML file).</p>
-<p>The preview shows you a rendered HTML copy of the contents of the
-editor. Consequently, unlike <em>Knit</em>, <em>Preview</em> does not
-run any R code chunks. Instead, the output of the chunk when it was last
-run in the editor is displayed.</p>
+<div id="end-of-lesson" class="section level2">
+<h2>END OF LESSON</h2>
 </div>
 </div>
 

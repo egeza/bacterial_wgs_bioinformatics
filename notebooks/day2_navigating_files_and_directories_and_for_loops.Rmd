@@ -1,5 +1,5 @@
 ---
-title: "Day 2: Quality checking and control and identifying species"
+title: "Day 2: Navigating files and directories and for loops"
 output:
   html_document:
     df_print: paged
@@ -119,28 +119,28 @@ wc headers.txt
 
 It is important to make sure the current command does not overwrite previous command especially when saving to a file. For example, perform the following operations:
 ```{r search-in-many-files1, eval=FALSE}
-grep -B1 -A2 NNNNNNNNNN testfile_R1.fastq > bad_reads.fastq
+grep -B1 -A2 TTT testfile_R1.fastq > bad_reads.fastq
 wc -l bad_reads.fastq
 ```
 
 ```{r search-in-many-files, eval=FALSE}
-grep -B1 -A2 NNNNNNNNNN toydata/testfile_R2.fastq > bad_reads.fastq
+grep -B1 -A2 TTT toydata/testfile_R2.fastq > bad_reads.fastq
 wc -l bad_reads.fastq
 ```
 
 To avoid overwriting, use the command >> (known as the “append redirect”). It will append new output to the end of a file, rather than overwriting it.
 
 ```{r search-in-many-files-avoid-overwriting, eval=FALSE}
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq >> bad_reads.fastq
+grep -B1 -A2 TTT toydata/testfile_R1.fastq >> bad_reads.fastq
 wc -l bad_reads.fastq
 
-grep -B1 -A2 NNNNN toydata/testfile_R2.fastq >> bad_reads.fastq
+grep -B1 -A2 TTT toydata/testfile_R2.fastq >> bad_reads.fastq
 wc -l bad_reads.fastq
 ```
 
 The above commands can be combined to a single line code by using
 ```{r search-without-overwriting-one-line-code, eval=FALSE}
-grep -B1 -A2 NNNNN toydata/*.fastq > bad_reads.fastq
+grep -B1 -A2 TTT toydata/*.fastq > bad_reads.fastq
 wc -l bad_reads.fastq
 ```
 
@@ -158,13 +158,13 @@ wc -l bad_reads.fastq
  - Enclose the pattern by single quotes so that grep does not interpret the pattern as an extended option (starting with –).
 
 ```{r quiry-output-always, eval=FALSE}
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | less
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | wc -l 
+grep -B1 -A2 TTT toydata/testfile_R1.fastq | less
+grep -B1 -A2 TTT toydata/testfile_R1.fastq | wc -l 
 # Check output matches expectation
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq > bad_reads.txt
+grep -B1 -A2 TTT toydata/testfile_R1.fastq > bad_reads.txt
 tail bad_reads.txt
 # Fix the output by redirect to another grep
-grep -B1 -A2 NNNNN toydata/testfile_R1.fastq | grep -v '^--' > bad_reads.fastq
+grep -B1 -A2 TTT toydata/testfile_R1.fastq | grep -v '^--' > bad_reads.fastq
 tail bad_reads.fastq
 ```
 
@@ -197,7 +197,9 @@ echo foo is ${foo}EFG
 Write a for loop to show us the first two lines of the fastq files in our toydata. 
 
 **NOTE**
- - Shell prompt changes from **$** to **>**. 
+
+ - Shell prompt changes from **$** to **>**.
+ 
  - The **>** prompt, reminds us that we haven’t finished typing a complete command yet.
  - Use a semicolon, **;** to separate two commands written on a single line.
 
@@ -222,8 +224,8 @@ done
 ```
 
  - If you notice a mistake that may prevent your loop from executing correctly, cancel the command using **Ctrl+C**
- - Note the difference in using >> vs >. 
- - >> means add to the end of seq_info.txt while > means rewrite to a new file every time the loop iterates
+ - Note the difference in using ">>" vs ">". 
+ - ">>" means add to the end of seq_info.txt while ">" means rewrite to a new file every time the loop iterates
 
 ## Using Basename in for loops
  - Basename is a function in UNIX that is helpful for removing a uniform part of a name from a list of files.
@@ -277,9 +279,9 @@ done
 
 ## KEY POINTS
  - grep is a powerful search tool with many options for customization.
- - >, >>, and | are different ways of redirecting output.
- - > - redirects a command’s output to a file.
- - >> - redirects a command’s output to a file without overwriting the existing contents of the file.
+ - ">", ">>", and | are different ways of redirecting output.
+ - ">" - redirects a command’s output to a file.
+ - ">>" - redirects a command’s output to a file without overwriting the existing contents of the file.
  - command_1 | command_2 - redirects the output of the first command as input to the second command.
  - for loops are used for iteration.
  - basename gets rid of repetitive parts of names.
@@ -357,12 +359,4 @@ We check the quality of WGS data for the following reasons
 
 Overall, high-quality whole genome sequencing data helps researchers to trust that their analyses are based on accurate, reliable, and complete genomic information, leading to more robust scientific conclusions.
 
-```{r}
-plot(cars)
-```
-
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
-
-The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+## END OF LESSON #####
