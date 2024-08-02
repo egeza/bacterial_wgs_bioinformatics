@@ -1,5 +1,5 @@
 ---
-title: "Day 2: Quality checking and control and identifying species"
+title: "Day 3: Script writing and quality checking and control"
 output:
   html_document:
     df_print: paged
@@ -7,12 +7,130 @@ editor_options:
   chunk_output_type: inline
 ---
 
+```{r, include=FALSE}
+library(knitr)
+```
+
 # Objectives
-1. Describe reasons for quality checking in bacterial WGS data.
-2. Inspect and interpret the quality of bacterial WGS data
-3. Identify contamination (species)
+1. Write and run scripts.
+2. Download data using *wget* or/and *curl*
+3. Describe reasons for quality checking in bacterial WGS data.
+4. Inspect and interpret the quality of bacterial WGS data
+5. Identify contamination (species)
 
 # Day 2 recap
+1. Create (by *cp*, *mkdir*), move (*mv*), copy (*cp*), and remove (*rm*).
+2. Search (*grep* and options *-B* and *-A*) and redirect output (">", ">>", "|").
+3. For loops (reduces typing mistakes, keywords: *for*, $, "{}").
+4. Get rid of repetitive name from files.
+
+## Writing scripts
+
+- Command line is powerful in that it can allow us to write scripts.
+- This is done by saving commands in a file (called script) and running them together.
+- Although it requires an additional time investment initially, scripts saves time since they can be run repeatedly.
+- Thus they can also address the reproducibility challenge.
+- Given sequencing reads, we would want to pull out bad reads and write them to a file to investigate them.
+- As before, we investigate reads with long sequences of N's but this time using a script (to use it each time).
+- Let's create a script and call it *bad-reads-script.sh*.
+- Note, bad reads have a lot of Ns, $\therefore$, we will use grep.
+
+```{r script-writing, eval=FALSE}
+#. 1 login to ilifu
+#. 2 Change the dir to your bacterial_wgs_bioinformatics
+#. 3 Create a new dir named scripts and change into this dir
+#. 4 
+nano bad-reads-script.sh
+#. 5 
+grep -B1 -A2 -h NNNNNNNNNN *.fastq | grep -v '^--' > scripted_bad_reads.txt
+#. 6
+Ctl + o
+# 7. Run the script
+bash bad-reads-script.sh
+# 8. Make the script to tell us we are done
+nano bad-reads-script.sh
+echo "Script finished"
+Ctl + o
+# 9. Run the script
+bash bad-reads-script.sh
+```
+
+### Making the script into a program
+
+ - Bash is a computer program that we have been telling the computer to use.
+ - Let's check the file permissions of the script we created. Is it executable? Use the **ls** command.
+ - Change the file to be executable.
+ - Run the script again using
+
+```{r run-script-as-a-program, eval=FALSE}
+./bad-reads-script.sh
+```
+
+### Moving and downloading data
+ - Here we show some command to download data.
+ - Two programs are used to download data from a remote server to a local machine: *wget*, and *curl*.
+ - Although they were designed to do different tasks, different options are given to them to get the same behaviour.
+ - *wget* and *curl* are mostly interchangeable.
+ - *wget* - short for "world wide web get". 
+ - *wget* is useful for downloading web pages or data at a web address.
+ - *cURL* - should be read as "see URL".
+ - *cURL*'s basic function is to display webpages or data at a web address.
+ - The choice on which one to use depends on the OS, most computers have one of the two.
+ - We are going to download a very small tab-delimited file from Ensembl.
+ - The file contains information on the data the Ensembl bacteria server.
+ - *which* scans through the system looking for everything installed, it tells the folder it is installed to.
+ - Check which of the two programs you have.
+ - If the program isn't installed, it returns nothing.
+ 
+```{r checking-program-on-the-system, eval=FALSE}
+which curl
+which wget
+
+# Depends on the program installed
+wget ftp://ftp.ensemblgenomes.org/pub/release-37/bacteria/species_EnsemblBacteria.txt
+curl -O ftp://ftp.ensemblgenomes.org/pub/release-37/bacteria/species_EnsemblBacteria.txt
+``` 
+
+ - For *wget*, to download, just use the command without any modifiers.
+ - For *curl*, *-O* tells *curl* to download that page and save the file using the same file name. 
+ - Both *wget* and *curl* download to the computer the command line belong to (local or cluster/server).
+ 
+## Data transfer (between local machine and cloud)
+ - Sometimes we may need to upload data to the server or download from the server (results).
+ - Several ways can be used, but it's easier to start transfer locally.
+ - That is, to be typing from a local machine (not on server).
+ - $\therefore$ transfer programs should be installed on our local computer.
+ - One can use *scp* to copy data to/from a virtual machine from a Linux, Mac OS, or Windows (with Git Bash) local machine.
+ - *scp* - stands for secure *cp* (copy).
+ - Thus, in place of *cp* we can use *scp*.
+ - Similarly to the *cp* the synthax is *scp source destination*.
+ 
+```{r secure-copy-and-transfers, eval=FALSE}
+# locally
+scp pathtofile-source pathtofile-destination
+# From local to server (ilifu in our case). use login credentials
+scp pathtofile-locally username@transfer.ilifu.ac.za:pathtofile-destination
+# From server to local
+scp username@transfer.ilifu.ac.za:pathtofile-source pathtofile-destination
+# Folder transfer
+scp -r pathtofile-source pathtofile-destination
+```
+
+## Running programs on the server/cloud
+
+- There programs that are globally installed, these are shown by
+```{r module-avail, eval=FALSE}
+# Check available softwares/tools
+module available
+# Add these to your environment
+module load modulename
+```
+
+# Bioinformatics pipeline for bacterial WGS
+
+```{r explainining-permissions, echo=FALSE}
+include_graphics("C:/Users/epi/Documents/bacterial_wgs_bioinformatics/bacterial_wgs_workflow.PNG")
+```
 
 ## Why checking the quality of WGS data
 We check the quality of WGS data for the following reasons
@@ -37,10 +155,7 @@ We check the quality of WGS data for the following reasons
 ## Common Quality Control Steps
 ### Inspect read quality
  - Assess an overview of read quality use quality scores, GC content, and other metrics (FASTQC, MULTIQC). 
- We run the FASTQC and MULTIQC
- 
- 
- - Trimming and Filtering - removing adapters and low quality bases (TRIMMOMATIC, CUTADAPT)
+ - Trimming and Filtering - removing adapters and low quality bases (BBDUK or/and TRIMMOMATIC, CUTADAPT).
 
 ### Identify contaminants
  - Check for contaminants (identify species) - use KRAKEN2 or DECONTAM to identify and filter out contaminant sequences.
@@ -51,25 +166,170 @@ We check the quality of WGS data for the following reasons
 ### Coverage Analysis:
   - Assess genome coverage and identify regions with insufficient coverage (BEDTools or QualiMap). 
 
-Overall, high-quality whole genome sequencing data helps researchers to trust that their analyses are based on accurate, reliable, and complete genomic information, leading to more robust scientific conclusions.
+Overall, high-quality whole genome sequencing data helps researchers 
+ - To trust that their analyses are based on accurate, reliable, and complete genomic information, 
+ - Leads to more robust scientific conclusions.
 
-# Day 3: Quality checking and trimming
-## FASTQC
+## Requesting for computing resources
+ - When analyzing the bacterial genomes we require computer resources including storage and also computer time.
+ - On a high performance computing platform these needs to be requested.
+ - This is done in two ways
+   - Requesting resources interactively
+   - Or through a submission script
+ - SLURM (Simple Linux Utility for Resource Management).
+ - An open-source job scheduler used in HPC environments to manage and allocate resources among various computing tasks.
+ - SLURM manages resources such as CPUs, memory, and GPUs on a cluster, ensuring that jobs are allocated resources efficiently.
+ - It schedules jobs based on priorities, dependencies, and resource requirements, optimizing the use of available resources.
+ - It is highly scalable and is used in some of the world's largest supercomputers.
+ - It supports various job types, including batch, interactive, and parallel jobs.
+ - It offers features like job arrays and reservations.
+ - It provides a range of commands (e.g., sbatch, srun, squeue, scancel) for job submission, monitoring, and management.
+ - Alternatives to SLURM are 
+   1. Portable Batch System (PBS)
+      a. Torque - An open-source variant of PBS that integrates with the Moab workload manager.
+      b. PBS Pro - Is the commercial version of PBS, offering advanced features and support.
+   2. Grid Engine:
+      a. Oracle Grid Engine: Originally known as Sun Grid Engine (SGE), used for job scheduling in grid computing environments.
+      b. Open Grid Scheduler: An open-source fork of Grid Engine.
+   3. LSF (Load Sharing Facility):
+      - Developed by IBM.
+      - LSF is a commercial job scheduler.
+      - It provides robust job scheduling, resource management, and workload balancing features.
 
-## MULTIQC
+Our HPC environment is based on the SLURM.
 
 ## Running FASTQC and MULTIQC: ilifu
 We first run FASTQC and MULTIQC using the modules on ilifu and then run the nextflow pipeline for quality checking and trimming
+```{r resources-request, eval=FALSE}
+# Requesting resources interactively
+srun --nodes=1 --reservation=cbio-training3 --mem=8g --time 8:00:00 --job-name "032" --pty /bin/bash
 
-## What is nextflow
+## Quality checking of raw reads
+module avail
+module load fastqc/0.11.9
+module load  multiqc/1.22.3 
 
+## Run fastqc
+# Make a directory in your home
+mkdir bacterial_wgs_training
+# Change dir to bacterial_wgs_training
+cd bacterial_wgs_training
+## Check the help of the tool
+fastqc --help
+# create output folder for FASTQC results
+mkdir rawfastqc
+
+# Run FASTQC
+fastqc  /cbio/training/courses/2024/bacterial_wgs/data/data/* -o rawfastqc/
+  
+## Amalgamate results
+# check help for multiqc
+multiqc --help | less
+## Run multiqc
+multiqc rawfastqc/ -o rawfastqc/
+``` 
+
+## Exercise
+ 1. Delete the rawfastqc dir
+ 
+ 
+Running the same using a script
+```{r script-to-run-fastqc-prep, eval=FALSE}
+# Make a dir to save scripts
+mkdir scripts
+# Also make dir to store logs in /users/username/bacterial_wgs_training
+mkdir logs
+## change to your script dir
+cd scripts
+
+nano fastqc.sh
+```
+
+```{r script-to-run-fastqc, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name='fastqc'
+#SBATCH --nodes=1 
+#SBATCH --partition=Main
+#SBATCH --mem=8GB
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/fastqc-stdout.txt
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/fastqc-stderr.txt
+#SBATCH --time=2:00:00
+#SBATCH --mail-user=useremail
+#SBATCH --mail-type=FAIL
+
+# load required modules
+module load fastqc/0.11.9
+module load  multiqc/1.22.3 
+
+# create output folder for FASTQC results
+mkdir rawfastqc
+
+# Run FASTQC (absolute and relative path)
+fastqc  /cbio/training/courses/2024/bacterial_wgs/data/data/* -o rawfastqc/
+  
+## Amalgamate results Run multiqc
+multiqc rawfastqc/ -o rawfastqc/
+```
+
+## What is nextflow?
+
+ - If there are several samples it might take time to assess the quality thus we use workflow management system that enables the orchestration of bioinformatics pipelines.
+ - This include nextflow and snakemake.
+ - In this training, we will use nextflow.
+ - Key features of nextflow:
+   - Uses a Groovy-based DSL to define workflows, making it flexible and powerful for complex pipeline creation.
+   - It facilitates parallel execution of tasks, optimizing the use of computational resources.
+   - It ensures reproducibility by managing dependencies through Docker or Singularity containers, and by tracking software versions.
+   - Workflows can run on various platforms (portable), including local servers, cloud environments (e.g., AWS, Google Cloud), and HPC clusters.
+   - It uses a dataflow programming model, allowing workflows to be designed based on the flow of data.
+   - It can scale from a single machine to large clusters and cloud-based environments.
+   - There is a rich ecosystem of pre-built pipelines and a vibrant community providing support and sharing resources.
 
 ## Running fastq_QC nextflow pipeline
+ - Check if there is a nextflow pipeline
+ - Git clone <https://github.com/kviljoen/fastq_QC>
+ - Things to check configuration files, nextflow parameters, main.nf
+ 
+```{r nextflow-pipeline, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name='fastq_QC'
+#SBATCH --nodes=1 
+#SBATCH --partition=Main
+#SBATCH --mem=8GB
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/fast_QC-nf-stdout.txt
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/fastq_QC-nf-stderr.txt
+#SBATCH --time=12:00:00
+#SBATCH --mail-user=usernameemail
+#SBATCH --mail-type=FAIL
+
+
+echo "ISOLATES QUALITY CHECKING, FILTERING AND TRIMMING (RAW QC, BBDUK & POST QC"
+
+# Set important dirs
+proj="/users/username/bacterial_wgs_training/"
+
+# For nextflow DSL1 pipeline
+module load nextflow/22.10.7
+
+cd ${proj}
+nextflow run ${proj}fastq_QC --reads '/cbio/training/courses/2024/bacterial_wgs/data/data/*_R{1,2}_001.fastq.gz' \
+        -profile ilifu -resume --email "email" --outdir ${proj}'quality_checking'
+```
 
 
 # Species Identification
-
+    
 ## Why is it neccessary?
+ 1. Clinical Diagnosis and Treatment - Accurate diagnosis, antibiotic selection, preventing resistance.
+ 2. Public Health and Epidemiology - Outbreak investigation, surveillance.
+ 3. Food Safety - Identify contamination source and to comply to regulations.
+ 4. Environmental Monitoring and Biotechnology - Identify pollution indicators, specific bacteria can be used in bioremediation to clean up environmental pollutants and for optimizing processes such as fermentation, waste treatment, and enzyme production.
+ 5. Scientific Research -  to understanding the composition of microbial communities in various environments (e.g., human gut, soil, water), studying species roles and interactions within ecosystems, contributing to a better understanding of microbial ecology.
+ 6. Antimicrobial Resistance (AMR) - determining species resistance patterns, which is critical for developing strategies to combat AMR, aid surveillance programs aimed at monitoring and controlling the spread of AMR.
 
-## KRAKEN2
+## Techniques for Bacterial Identification
+ - Morphological and Biochemical Tests -Traditional methods include Gram staining, colony morphology, and biochemical assays.
+ - Molecular Techniques - Modern techniques include DNA sequencing, PCR, and mass spectrometry (e.g., MALDI-TOF). These methods provide higher accuracy and speed in identifying bacterial species.
+ - Next-Generation Sequencing (NGS) - Metagenomics and whole-genome sequencing offer comprehensive insights into bacterial communities and their functions.
+
 

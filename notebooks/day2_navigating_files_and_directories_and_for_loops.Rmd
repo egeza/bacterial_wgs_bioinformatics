@@ -7,6 +7,10 @@ editor_options:
   chunk_output_type: inline
 ---
 
+```{r, include=FALSE}
+library(knitr)
+```
+
 ## Objectives
 1. Creating, moving, copying, and removing
 2. Redirecting output
@@ -53,12 +57,9 @@ View the current permissions on a file:
 ls -l
 ```
 
-```{r, include=FALSE}
-library(knitr)
-```
 
 ```{r explainining-permissions, echo=FALSE}
-include_graphics("C:/Users/epi/Documents/BST_projects/2024/trainings/bacterial_wgs_bioinformatics/permissions.PNG")
+include_graphics("C:/Users/epi/Documents/bacterial_wgs_bioinformatics/permissions.PNG")
 ```
 
 Let's now change the file permissions so that we won't be able to edit it
@@ -260,8 +261,6 @@ done
 .
 3. Print the prefix of all sample names in 
 /cbio/training/courses/2024/bacterial_wgs/data/data, for example, the name 101-001-01_S21.
-
-
 
 ## Demonstrating basename in moving files. 
  - Change to the toydata directory
