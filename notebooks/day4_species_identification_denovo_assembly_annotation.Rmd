@@ -1,0 +1,284 @@
+---
+title: "Day 4: Quality trimming, species identification, genome assembly and annotation"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r, include=FALSE}
+library(knitr)
+```
+
+# Objectives
+1. Day 3 recap
+2. Quality trimming
+3. Identify contamination (species)
+3. Genome assembly and annotation
+
+# Day 3 recap
+1. Write and run scripts (with/out converting it to executable).
+2. Use of *wget* and *curl* to download data.
+3. Tranfer data between a computer and the cluster (*scp*).
+4. How programs are run on the cluster.
+5. Request computing resources on the cluster (*srun* and *sbatch*).
+6. Read quality inspection (run FASTQC and MULTIQC).
+
+# Bioinformatics pipeline for bacterial WGS
+
+```{r explainining-permissions, echo=FALSE}
+include_graphics("C:/Users/epi/Documents/bacterial_wgs_bioinformatics/bacterial_wgs_workflow.PNG")
+```
+
+```{r script-to-run-fastqc-prep, eval=FALSE}
+#. 1 login to ilifu
+#. 2 Change the dir to your bacterial_wgs_bioinformatics
+#. 3 # make dir to store logs in /users/username/bacterial_wgs_training
+mkdir logs
+#. 4 Create a new dir named scripts and change into this dir
+
+# Make a dir to save scripts 
+#mkdir scripts; cd scripts
+
+nano fastqc.sh
+```
+
+
+Running the FASTQC and MULTIQC using a script
+```{r script-to-run-fastqc, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name='fastqc'
+#SBATCH --nodes=1 
+#SBATCH --partition=Main
+#SBATCH --mem=8GB
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/fastqc-stdout.txt
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/fastqc-stderr.txt
+#SBATCH --time=2:00:00
+#SBATCH --mail-user=useremail
+#SBATCH --mail-type=FAIL
+
+# load required modules
+module load fastqc/0.11.9
+module load  multiqc/1.22.3 
+
+# create output folder for FASTQC results
+mkdir rawfastqc
+
+# Run FASTQC (absolute and relative path)
+fastqc  /cbio/training/courses/2024/bacterial_wgs/data/data/* -o rawfastqc/
+  
+## Amalgamate results Run multiqc
+multiqc rawfastqc/ -o rawfastqc/
+```
+
+## What if the softwares are not installed on cluster?
+Depending on the system one can use docker or singularity container, or a conda env.
+
+### Creating a conda environment
+
+```{r demonstating-conda-env-create, eval=FALSE}
+module load 
+# create the environment and name it qc_env
+conda create -n qc_env
+# Activate the conda envirment in order to install packages or run programs
+conda activate qc_env
+# install packages (fastqc and multiqc)
+conda install -c conda-forge -c bioconda fastqc multiqc
+# deactivate the env
+conda deactivate
+# Check FastQC
+fastqc --version
+# Check MultiQC
+multiqc --version
+```
+
+Creating docker or/and singularity images is outside the scope of this training.
+
+# Workflow management systems
+ - Workflow management systems (WMS) are software tools designed to define, manage, and execute workflows. 
+ - They are essential for orchestrating complex tasks and ensuring that processes are carried out efficiently and accurately. 
+ - Examples of popular workflow management systems include:
+    1. Nextflow - uses a Groovy-based DSL to define workflows, making it flexible and powerful for complex pipeline creation.
+       - It facilitates parallel execution of tasks, optimizing the use of computational resources.
+       - It ensures reproducibility by managing dependencies through Docker or Singularity containers, and by tracking software versions.
+       - Workflows can run on various platforms (portable), including local servers, cloud environments (e.g., AWS, Google Cloud), and HPC clusters.
+       - It uses a dataflow programming model, allowing workflows to be designed based on the flow of data.
+       - It can scale from a single machine to large clusters and cloud-based environments.
+       - There is a rich ecosystem of pre-built pipelines and a vibrant community providing support and sharing resources.
+    2. Snakemake - is a Python-based DSL.
+    Snakemake key features include rule-based workflows, parallel execution, reproducibility, portability
+    It is used in scientific workflows, data analysis and bioinformatics.
+    3. Cromwell - a Workflow Description Language (WDL)
+    It's key features are: scalability, portability, support for multiple backends (local, cloud), task dependencies.
+    Useful for Bioinformatics workflows and scientific computing
+    4. Others including but not limited to Apache Airflow, Luigi, Kubernetes (with Argo Workflows), Galaxy, Pachyderm, Kepler, Taverna
+
+Similarly to any other tool, each WMS has its own strengths and is suited to different types of tasks and user preferences. 
+
+## Running fastq_QC nextflow pipeline
+ - Check if there is a nextflow pipeline.
+ - Git clone <https://github.com/kviljoen/fastq_QC>.
+ - Pipelines inspect quality of raw reads, trim and filter quality and inspect quality after trimming and filtering.
+ - We use BBDUK <https://jgi.doe.gov/data-and-tools/software-tools/bbtools/bb-tools-user-guide/bbduk-guide/> to filter and trim low quality reads.
+ - Check the help of the pipeline.
+ - Things to check configuration files, nextflow parameters, main.nf.
+ - Is there any need of a cluster specific configuration file.
+ 
+```{r nextflow-pipeline, eval=FALSE}
+#!/bin/bash
+#SBATCH --job-name='fastq_QC'
+#SBATCH --nodes=1 
+#SBATCH --partition=Main
+#SBATCH --mem=8GB
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/fastq_QC-nf-stdout.txt
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/fastq_QC-nf-stderr.txt
+#SBATCH --time=12:00:00
+#SBATCH --mail-user=email
+#SBATCH --mail-type=FAIL
+
+
+echo "ISOLATES QUALITY CHECKING, FILTERING AND TRIMMING (RAW QC, BBDUK & POST QC"
+
+# Set important dirs
+proj="/users/username/bacterial_wgs_training/"
+
+# For nextflow DSL1 pipeline
+module load nextflow/22.10.7
+
+cd ${proj}
+nextflow run ${proj}fastq_QC --reads '/cbio/training/courses/2024/bacterial_wgs/data/data/*_R{1,2}_001.fastq.gz' \
+        -profile ilifu -resume --email "email" --outdir ${proj}'qcout'
+```
+
+
+# Species Identification
+    
+## Why is it neccessary?
+ 1. Clinical Diagnosis and Treatment - Accurate diagnosis, antibiotic selection, preventing resistance.
+ 2. Public Health and Epidemiology - Outbreak investigation, surveillance.
+ 3. Food Safety - Identify contamination source and to comply to regulations.
+ 4. Environmental Monitoring and Biotechnology - Identify pollution indicators, specific bacteria can be used in bioremediation to clean up environmental pollutants and for optimizing processes such as fermentation, waste treatment, and enzyme production.
+ 5. Scientific Research -  to understanding the composition of microbial communities in various environments (e.g., human gut, soil, water), studying species roles and interactions within ecosystems, contributing to a better understanding of microbial ecology.
+ 6. Antimicrobial Resistance (AMR) - determining species resistance patterns, which is critical for developing strategies to combat AMR, aid surveillance programs aimed at monitoring and controlling the spread of AMR.
+
+## Techniques for Bacterial Identification
+ - Morphological and Biochemical Tests -Traditional methods include Gram staining, colony morphology, and biochemical assays.
+ - Molecular Techniques - Modern techniques include DNA sequencing, PCR, and mass spectrometry (e.g., MALDI-TOF). These methods provide higher accuracy and speed in identifying bacterial species.
+ - Next-Generation Sequencing (NGS) - Metagenomics and whole-genome sequencing offer comprehensive insights into bacterial communities and their functions.
+
+## KRAKEN and species identification
+
+```{r kraken2-species-identify, eval=FALSE}
+cd /users/username/bacterial_wgs_training/scripts
+
+nano kraken2.sh
+#!/bin/bash
+#SBATCH --job-name='32_kraken2'
+#SBATCH --nodes=1
+#SBATCH --ntasks=32
+#SBATCH --time=48:00:00
+#SBATCH --mem=232g
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/kraken2-stdout.log
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/kraken2-stderr.log
+#SBATCH --mail-user="useremail"
+
+proj="/users/username/bacterial_wgs_training/"
+# load required module
+module load kraken2/2.1.3
+## Build a standard DB (DONE ONCE. THIS WAS DONE FOR YOU)
+#kraken2-build --standard --db kraken2_db
+
+# Directory containing your genome files
+input_dir="/users/username/bacterial_wgs_training/qcout/bbduk"
+output_dir="/users/username/bacterial_wgs_training/kraken2out"
+kraken_db="/cbio/training/courses/2024/bacterial_wgs/kraken2_db"
+
+# Create output directory if it doesn't exist
+mkdir -p "$output_dir"
+cd ${input_dir}
+# Loop through each genome file and classify it (more like identify taxonomy)
+
+for filename in `ls *_L001_trimmed_R2.fq`
+do
+        sample=$(basename ${filename} _L001_trimmed_R2.fq)
+        echo "running KRAKEN2 for sample "${sample}
+        kraken2 --db ${kraken_db} --paired ${sample}_L001_trimmed_R1.fq ${sample}_L001_trimmed_R2.fq \
+                --report ${output_dir}/${sample}_kraken2_report.txt \
+                --report-minimizer-data --output ${ouput_dir}/${sample}_kraken2_output.txt
+done
+
+# submit the script
+sbatch kraken2.sh
+```
+
+## KRAKEN2 results
+
+
+# Genome assembly, assessment and annotation
+ - This section focus on genome assembly, assessing the quality of the genomes and annotating them.
+ - Genome assembly involves reconstructing a genome from a set of short DNA sequences (reads) obtained from sequencing technologies. 
+ - The aim is to piece together these reads to create a continuous sequence that represents the genome of the organism.
+ - Key Concepts
+    - Reads: Short sequences of DNA obtained from sequencing technologies.
+    - Contigs: Continuous sequences formed by overlapping reads.
+    - Scaffolds: Ordered and oriented sets of contigs, sometimes with gaps, which represent larger regions of the genome.
+    - Coverage: The average number of times each base in the genome is sequenced, which affects the accuracy of the assembly.
+ - Assembly can be:
+    - De novo assembly - which is the construction of the genome from scratch without a reference.
+    - Reference-guided assembly - which uses a known reference genome to guide the assembly of the new genome.
+ - Steps in Genome Assembly
+    1. Preprocessing (Quality Control, e.g., using FastQC) and Adapter Trimming (Removing adapter sequences and low-quality bases e.g., using Trimmomatic).
+    2. Assembly (Overlap Layout Consensus (OLC), e.g., Canu), De Bruijn Graph (DBG), e.g., SPAdes).
+    3. Scaffolding (involves use of long-range information from paired-end or mate-pair reads to order and orient contigs into scaffolds (e.g., SSPACE).
+    4. Gap Filling (use additional reads or assembly techniques to close gaps within scaffolds (e.g., GapCloser).
+    5. Polishing (correcting sequencing errors and improving the accuracy of the assembly, e.g., Pilon).
+    6. Evaluation (Assembly Metrics including N50 (length of the contig such that 50% of the total assembly length is in contigs of this length or longer); genome completeness; and accuracy, e.g., QUAST).
+ - Common Tools for Genome Assembly
+    1. SPAdes: A popular assembler for small genomes, using a de Bruijn graph approach.
+    2. Canu: Designed for long-read sequencing data, using an overlap-layout-consensus approach.
+    3. Flye: Another assembler for long-read data, particularly effective for nanopore reads.
+    4. ABySS: Suitable for large genome assemblies, using a distributed de Bruijn graph approach.
+    5. Velvet: An older but still useful tool for assembling short reads using a de Bruijn graph.
+    6. SOAPdenovo2: Another tool for assembling short reads, often used for large genomes.
+ - Best Practices for Genome Assembly
+    - Start with high-quality, high-coverage sequencing data to improve the accuracy of the assembly.
+    - Try multiple assemblers and compare results, as different tools may perform better for different data types.
+    - Use iterative rounds of assembly, scaffolding, and polishing to gradually improve the assembly.
+    - Validate the final assembly using independent data, such as long-read sequencing or optical mapping.
+    - Keep detailed records of all parameters and steps used in the assembly process for reproducibility.
+
+## Running the *de novo* assembly pipeline
+ - Git clone <https://github.com/kviljoen/Tychus.git> into /users/username/bacterial_wgs_training directory
+ - The pipeline involves two modules: assembly and alignment.
+ - This section will focus on the assembly <https://github.com/kviljoen/Tychus/blob/master/assembly.nf> module.
+ 
+```{r assembly-module, eval=FALSE}
+cd /users/username/bacterial_wgs_training/scripts
+
+nano assembly.sh
+
+#!/bin/bash
+#SBATCH --job-name='tychus-assembly'
+#SBATCH --nodes=1 --ntasks=10
+#SBATCH --time=120:00:00
+#SBATCH --mem=80g
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/tychus-assembly-stdout.log
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/tychus-assembly-stderr.log
+#SBATCH --mail-user=ephie.geza@uct.ac.za
+
+module load nextflow/22.10.7
+
+proj="/users/username/bacterial_wgs_training/"
+img="/cbio/users/katie/singularity_containers/6c884bc3ab5c-2017-12-15-c6ae6fedbccd.img"
+
+cd /users/username/bacterial_wgs_training/Tychus
+# We have used a relative path since we changed dir
+nextflow run ${proj}Tychus/assembly.nf \
+  -w ${proj}"work-tychus-assembly" \
+  -profile assembly \
+  --read_pairs "/users/username/bacterial_wgs_training/qcout/bbduk/*_{1,2}.fq" \
+  --assembly_out_dir ${proj}"tychus-assemblyout" \
+  -resume --genus "specific-genus" --species "specific-species"
+```
+
