@@ -1,0 +1,348 @@
+---
+title: "Day 5: KRAKEN2 running, genome assembly and annotation"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: inline
+---
+
+```{r, include=FALSE}
+library(knitr)
+```
+
+# Objectives
+1. Day 4 recap
+2. Identify contamination (species)
+3. Genome assembly, assessment and annotation
+
+# Day 4 recap
+1. WMS
+2. Installing a conda environment.
+3. Quality checking, trimming and filtering using fastq_QC nextflow pipeline.
+
+# Bioinformatics pipeline for bacterial WGS
+
+```{r explainining-permissions, echo=FALSE}
+include_graphics("C:/Users/epi/Documents/bacterial_wgs_bioinformatics/bacterial_wgs_workflow.PNG")
+```
+
+## KRAKEN and species identification
+
+```{r kraken2-species-identify, eval=FALSE}
+cd /users/username/bacterial_wgs_training/scripts
+
+nano kraken2.sh
+#!/bin/bash
+#SBATCH --job-name='32_kraken2'
+#SBATCH --nodes=1
+#SBATCH --ntasks=32
+#SBATCH --time=48:00:00
+#SBATCH --mem=232g
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/kraken2-stdout.log
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/kraken2-stderr.log
+#SBATCH --mail-user="useremail"
+
+proj="/users/username/bacterial_wgs_training/"
+# load required module
+module load kraken2/2.1.3
+## Build a standard DB (DONE ONCE. THIS WAS DONE FOR YOU)
+#kraken2-build --standard --db kraken2_db
+
+# Directory containing your genome files
+input_dir="/users/username/bacterial_wgs_training/qcout/bbduk"
+output_dir="/users/username/bacterial_wgs_training/kraken2out"
+kraken_db="/cbio/training/courses/2024/bacterial_wgs/kraken2_db"
+
+# Create output directory if it doesn't exist
+mkdir -p "$output_dir"
+cd ${input_dir}
+# Loop through each genome file and classify it (more like identify taxonomy)
+
+for filename in `ls *_L001_trimmed_R2.fq`
+do
+        sample=$(basename ${filename} _L001_trimmed_R2.fq)
+        echo "running KRAKEN2 for sample "${sample}
+        kraken2 --db ${kraken_db} --paired ${sample}_L001_trimmed_R1.fq ${sample}_L001_trimmed_R2.fq \
+                --report ${output_dir}/${sample}_kraken2_report.txt \
+                --report-minimizer-data --output ${ouput_dir}/${sample}_kraken2_output.txt
+done
+
+# submit the script
+sbatch kraken2.sh
+```
+
+## KRAKEN2 results
+
+```{r demonstarting-how-to-read-kraken2-results, eval=FALSE,include=FALSE}
+read_kraken2_output <- function(file_path) {
+    # Attempt to read the file
+    tryCatch({
+        # Read the TSV file
+        kraken2_output <- read_tsv(file_path, col_names = FALSE, comment = "#")
+        
+        # Assign column names
+        colnames(kraken2_output) <- c("%ReadsCov","NumReadCov", "ReadsAssigned", "UniqKmersCov","UniqKmersAss",  "RankCode", "NCBITaxID",    "SciName")
+        
+        # Return the cleaned data frame
+        return(kraken2_output)
+    }, error = function(e) {
+        message("Error reading file: ", e)
+        return(NULL)
+    })
+}
+
+# Read Kraken2 output
+file_path <- "C:/Users/username/Documents/bacterial_wgs_bioinformatics/103_017_01_S5_kraken2.txt"  # Replace with your file path
+kraken2_output <- read_kraken2_output(file_path)
+```
+
+```{r kraken2output, echo=FALSE}
+include_graphics("C:/Users/epi/Documents/bacterial_wgs_bioinformatics/kraken2out.PNG")
+```
+
+Headings are:
+
+ 1. **%ReadsCov** - The %age of reads that are either directly assigned to a taxon or assigned to its descendants (the entire clade).
+ 2. **NumReadCov** - The number of reads that are either directly assigned to a taxon or assigned to its descendants.
+ 3. **ReadsAssigned** - The number of reads that are directly assigned to a specific taxon.
+ 4. **UniqKmersCov** - The number of unique k-mers (subsequences of length k) associated with the taxon and its descendants.
+ 5. **UniqKmersAss** - The number of unique k-mers that are directly associated with the taxon.
+ 6. **RankCode** - A single-letter code indicating the taxonomic rank of the taxon. U (unclassified), R (root), D (domain), P (phylum), C (class), O (order), F (family), G (genus), S (species), S1/S2 (subspecies), etc.).
+ 7. **NCBITaxID** - The unique identifier for the taxon in the NCBI taxonomy database.
+ 8. **SciName** - The scientific name of the taxon.
+
+ - In summary:
+    - The majority of the reads ($\approx$ 99.2%) are identified as Bacteria.
+    - Within Bacteria, 99.0% are identified as Pseudomonadota (Phylum), with most (96.6%) being Gammaproteobacteria (Class).
+    - The order Pseudomonadales (96.1%) and family Pseudomonadaceae (96.1%) are dominant.
+    - The genus Pseudomonas makes up 94.8% of the reads.
+    - Pseudomonas aeruginosa is the most abundant species, making up 46.8% of the reads.
+    - Specific strains of Pseudomonas aeruginosa (e.g., PAO1 and PAO1H2O) account for small percentages.
+    - These results indicate a sample heavily dominated by Pseudomonas, particularly Pseudomonas aeruginosa, suggesting a significant presence of this species in the sample.
+
+# Genome assembly, assessment and annotation
+ - This section focus on genome assembly, assessing the quality of the genomes and annotating them.
+ - Genome assembly involves reconstructing a genome from a set of short DNA sequences (reads) obtained from sequencing technologies. 
+ - The aim is to piece together these reads to create a continuous sequence that represents the genome of the organism.
+ - Key Concepts
+    - Reads: Short sequences of DNA obtained from sequencing technologies.
+    - Contigs: Continuous sequences formed by overlapping reads.
+    - Scaffolds: Ordered and oriented sets of contigs, sometimes with gaps, which represent larger regions of the genome.
+    - Coverage: The average number of times each base in the genome is sequenced, which affects the accuracy of the assembly.
+ - Assembly can be:
+    - *De novo* assembly - the construction of the genome from scratch without a reference.
+    - Reference-guided assembly - uses a known reference genome to guide the assembly of the new genome.
+ - Steps in Genome Assembly
+    1. Preprocessing (quality control, e.g., using FastQC and removing adapter sequences and low-quality bases e.g., using TRIMMOMATIC).
+    2. Assembly (Overlap Layout Consensus (OLC), e.g., Canu; De Bruijn Graph (DBG), e.g., SPAdes).
+    3. Scaffolding (involves use of long-range information from paired-end or mate-pair reads to order and orient contigs into scaffolds (e.g., SSPACE).
+    4. Gap Filling (use additional reads or assembly techniques to close gaps within scaffolds (e.g., GapCloser).
+    5. Polishing (correcting sequencing errors and improving the accuracy of the assembly, e.g., Pilon).
+    6. Evaluation (Assembly Metrics including N50 (length of the contig such that 50% of the total assembly length is in contigs of this length or longer); genome completeness; and accuracy, e.g., QUAST).
+ - A Snapshot of Common Tools for Genome Assembly
+    1. SPAdes: A popular assembler for small genomes, using a de Bruijn graph approach.
+    2. Canu: Designed for long-read sequencing data, using an overlap-layout-consensus approach.
+    3. Flye: Another assembler for long-read data, particularly effective for nanopore reads.
+    4. ABySS: Suitable for large genome assemblies, using a distributed de Bruijn graph approach.
+    5. Velvet: An older but still useful tool for assembling short reads using a de Bruijn graph.
+    6. SOAPdenovo2: Another tool for assembling short reads, often used for large genomes.
+ - Best Practices for Genome Assembly
+    - Start with high-quality, high-coverage sequencing data to improve the accuracy of the assembly.
+    - Try multiple assemblers and compare results, as different tools may perform better for different data types.
+    - Use iterative rounds of assembly, scaffolding, and polishing to gradually improve the assembly.
+    - Validate the final assembly using independent data, such as long-read sequencing or optical mapping.
+    - Keep detailed records of all parameters and steps used in the assembly process for reproducibility.
+
+## Running the *de novo* assembly pipeline
+ - Git clone <https://github.com/kviljoen/Tychus.git> into /users/username/bacterial_wgs_training directory.
+ - **NB** Repository couldn't work, I have to check let's use one from /cbio/projects/033/Tychus.
+ - The pipeline involves two modules: assembly and alignment.
+ - This section will focus on the assembly <https://github.com/kviljoen/Tychus/blob/master/assembly.nf> module.
+ - The pipeline also takes "genus" and "species" as arguments or flags.
+ - As such we may need to create subfolders for different species.
+ 
+ 
+```{r prep-assembly-module, eval=FALSE}
+head -11 kraken2out/101-001-01_S21_kraken2_report.txt |awk -F"\t" '{ print $1,$7,$8}'
+head -11 kraken2out/101-001-01_S21_kraken2_report.txt |awk -F"\t" '{ print $1,$7,$8}'| tail -1
+
+cd /users/username/bacterial_wgs_training/kraken2out
+# We want to save information on sampleID, Genus, Species in a file
+## Check if the file exist and delete it
+[ -e /users/username/bacterial_wgs_training/kraken2_summary.txt ] && rm -- /users/username/bacterial_wgs_training/kraken2_summary.txt
+
+## Extract information related to Genus and Species and create folders to assemble reads
+for filename in `ls `
+do
+  sample=$(basename ${filename} _kraken2_report.txt)
+  genus=$(head -11 ${filename} |awk -F"\t" '{ print $8}'| tail -2 |head -1| awk '{print $1}')
+  species=$(head -11 ${filename} |awk -F"\t" '{ print $8}'| tail -1|awk '{print $1,$2}')
+  # Create folder specific dir
+  mkdir -p /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${genus}
+  echo "${sample}    ${genus}    ${species}" >> /users/username/bacterial_wgs_training/kraken2_summary.txt
+  # Create folder specific dir
+  echo "${sample}     ${genus}    ${species}" >> /users/ephie/wgs/bacterial_wgs_training
+/kraken2_summary.txt; done
+done
+```
+
+```{r assemble-module, eval=FALSE}
+cp /users/username/bacterial_wgs_training/qcout/bbduk/101-001-01_S21_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Klebsiella/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/102-002-01_S10_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Klebsiella/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/105-004-01_S4_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Klebsiella/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/105-007-01_S7_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Klebsiella/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/103-017-01_S5_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Pseudomonas/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/102-003-01_S11_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Pseudomonas/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/101-006-01_S8_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Enterobacter/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/103-004-01_S3_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Escherichia/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/105-008-01_S1_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Escherichia/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/102-006-01_S14_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Serratia/
+cp /users/username/bacterial_wgs_training/qcout/bbduk/103-004-01_S3_L001_trimmed_R* \
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Escherichia/
+
+nano /users/username/bacterial_wgs_training/scripts/assembly.sh
+
+#!/bin/bash
+#SBATCH --job-name='tychus-assembly'
+#SBATCH --nodes=1 --ntasks=10
+#SBATCH --time=120:00:00
+#SBATCH --mem=80g
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/assembly-stdout.log
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/assembly-stderr.log
+#SBATCH --mail-user=ephie.geza@uct.ac.za
+
+module load nextflow/22.10.7
+
+proj="/users/username/bacterial_wgs_training/"
+
+# Which genuses are found in our samples
+list_genus=$(awk '{print $2}' /users/username/bacterial_wgs_training/kraken2_summary.txt| sort|uniq)
+
+cd /users/username/bacterial_wgs_training/Tychus
+# We have used a relative path since we changed dir
+for gen in ${list_genus}
+do
+  if [ ${gen}=="Klebsiella" ]; then
+    nextflow run ${proj}Tychus/assembly.nf \
+      -w ${proj}"work-tychus-assembly" \
+      -profile assembly \
+      --read_pairs "/users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${gen}/*_{1,2}.fq" \
+      --assembly_out_dir ${proj}"assemblyout_${gen}" \
+      -resume --genus "${gen}" --species "Klebsiella pneumoniae"
+  elif [ ${gen}=="Pseudomonas" ]; then
+    nextflow run ${proj}Tychus/assembly.nf \
+      -w ${proj}"work-tychus-assembly" \
+      -profile assembly \
+      --read_pairs "/users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${gen}/*_{1,2}.fq" \
+      --assembly_out_dir ${proj}"assemblyout_${gen}" \
+      -resume --genus "${gen}" --species "Pseudomonas aruginosa"
+    
+  elif [ ${gen}=="Enterobacter" ]; then
+    nextflow run ${proj}Tychus/assembly.nf \
+      -w ${proj}"work-tychus-assembly" \
+      -profile assembly \
+      --read_pairs "/users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${gen}/*_{1,2}.fq" \
+      --assembly_out_dir ${proj}"assemblyout_${gen}" \
+      -resume --genus "${gen}" --species "Enterobacter  hormaechei"
+    
+  elif [ ${gen}=="Escherichia" ]; then
+    nextflow run ${proj}Tychus/assembly.nf \
+      -w ${proj}"work-tychus-assembly" \
+      -profile assembly \
+      --read_pairs "/users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${gen}/*_{1,2}.fq" \
+      --assembly_out_dir ${proj}"assemblyout_${gen}" \
+      -resume --genus "${gen}" --species "Escherichia coli"
+    
+  elif [ ${gen}=="Serratia" ]; then
+    nextflow run ${proj}Tychus/assembly.nf \
+      -w ${proj}"work-tychus-assembly" \
+      -profile assembly \
+      --read_pairs "/users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${gen}/*_{1,2}.fq" \
+      --assembly_out_dir ${proj}"assemblyout_${gen}" \
+      -resume --genus "${gen}" --species "Serratia marcescens"
+  else
+    echo "Its a new species not in Enterobacterales or Pseudomonas"
+  fi
+done
+```
+
+# Virulence factors
+ - We determine the molecules produced by each species that contribute to its ability to cause diseases (virulence factors: VFs). 
+ - These VFs enable the bacteria to colonize a host, evade or suppress the host's immune response, and obtain nutrients from the host.
+ 
+```{r virilulencefactors, eval=FALSE}
+nano virulence_factors.sh
+#!/bin/bash
+#SBATCH --job-name='VFs'
+#SBATCH --nodes=1 --ntasks=10
+#SBATCH --time=48:00:00
+#SBATCH --mem=80g
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/vfs-abricate-stdout.log
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/vfs-abricate-stderr.log
+#SBATCH --mail-user=ephie.geza@uct.ac.za
+
+set -e
+
+module load python/3.12.1
+
+proj="/users/username/bacterial_wgs_training/"
+output=${proj}"vfdb_abricate"
+data=${proj}"assemblyout_${gen}/"
+img="/cbio/projects/033/images/bacterial_wgs_latest-2024-07-22-32bd9a1b9ae4.simg"
+
+if [ ! -d ${output} ]; then
+        mkdir -p ${output}
+fi
+
+## RUN abricate considering a minimum identity of 90% and minimum coverage of 90%
+cd ${data}
+for file in `ls `
+do
+        singularity exec ${img} abricate --db vfdb ${data}${file} --minid 90 --mincov 90  > ${output}/${file}_vfdb.tsv
+done
+# Summarize the results into one file
+singularity exec ${img} abricate --summary  ${output}/*_vfdb.tsv > ${output}/summary_vfdb.tsv
+```
+
+# Antimicrobial resistance genes
+
+```{r rgi-card, eval=FALSE}
+ #!/bin/bash
+#SBATCH --job-name='rgi_final'
+#SBATCH --nodes=1 --ntasks=10
+#SBATCH --partition=Main
+#SBATCH --mem=60GB
+#SBATCH --output=/users/username/bacterial_wgs_training/logs/rgi_final-stdout.txt
+#SBATCH --error=/users/username/bacterial_wgs_training/logs/rgi_final-stderr.txt
+#SBATCH --time=12:00:00
+
+
+# Set important dirs
+proj="/users/username/bacterial_wgs_training/"
+rgi_dir="/users/username/bacterial_wgs_training/02_AMR/rgi_final"
+img="/cbio/projects/033/images/bacterial_wgs_latest-2024-07-22-32bd9a1b9ae4.simg"
+
+cd ${proj}
+# Do for each species
+cd /users/username/bacterial_wgs_training/assemblyout_${gen}
+mkdir ${rgi_dir}
+
+for i in `ls *.fna`
+do
+       #z=$(echo "$i" | cut -d'.' -f1)
+       singularity exec ${img} rgi main --input_sequence ${i} --output_file ${rgi_dir}/${i} --local  --clean --include_loose
+done
+
+cd ${rgi_dir}
+```
