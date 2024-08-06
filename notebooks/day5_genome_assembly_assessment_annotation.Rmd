@@ -155,13 +155,11 @@ Headings are:
     - Keep detailed records of all parameters and steps used in the assembly process for reproducibility.
 
 ## Running the *de novo* assembly pipeline
- - Git clone <https://github.com/kviljoen/Tychus.git> into /users/username/bacterial_wgs_training directory.
- - **NB** Repository couldn't work, I have to check let's use one from /cbio/projects/033/Tychus.
+ - Git clone <https://github.com/egeza/Tychus.git> into /users/username/bacterial_wgs_training directory.
  - The pipeline involves two modules: assembly and alignment.
- - This section will focus on the assembly <https://github.com/kviljoen/Tychus/blob/master/assembly.nf> module.
+ - This section will focus on the assembly <https://github.com/egeza/Tychus/blob/master/assembly.nf> module.
  - The pipeline also takes "genus" and "species" as arguments or flags.
  - As such we may need to create subfolders for different species.
- 
  
 ```{r prep-assembly-module, eval=FALSE}
 head -11 kraken2out/101-001-01_S21_kraken2_report.txt |awk -F"\t" '{ print $1,$7,$8}'
@@ -181,13 +179,9 @@ do
   # Create folder specific dir
   mkdir -p /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${genus}
   echo "${sample}    ${genus}    ${species}" >> /users/username/bacterial_wgs_training/kraken2_summary.txt
-  # Create folder specific dir
-  echo "${sample}     ${genus}    ${species}" >> /users/ephie/wgs/bacterial_wgs_training
-/kraken2_summary.txt; done
 done
-```
 
-```{r assemble-module, eval=FALSE}
+# COPY
 cp /users/username/bacterial_wgs_training/qcout/bbduk/101-001-01_S21_L001_trimmed_R* \
   /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Klebsiella/
 cp /users/username/bacterial_wgs_training/qcout/bbduk/102-002-01_S10_L001_trimmed_R* \
@@ -210,7 +204,9 @@ cp /users/username/bacterial_wgs_training/qcout/bbduk/102-006-01_S14_L001_trimme
   /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Serratia/
 cp /users/username/bacterial_wgs_training/qcout/bbduk/103-004-01_S3_L001_trimmed_R* \
   /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Escherichia/
+```
 
+```{r assemble-module, eval=FALSE}
 nano /users/username/bacterial_wgs_training/scripts/assembly.sh
 
 #!/bin/bash

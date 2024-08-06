@@ -1809,12 +1809,10 @@ assembly process for reproducibility.</li>
 <div id="running-the-de-novo-assembly-pipeline" class="section level2">
 <h2>Running the <em>de novo</em> assembly pipeline</h2>
 <ul>
-<li>Git clone <a href="https://github.com/kviljoen/Tychus.git" class="uri">https://github.com/kviljoen/Tychus.git</a> into
+<li>Git clone <a href="https://github.com/egeza/Tychus.git" class="uri">https://github.com/egeza/Tychus.git</a> into
 /users/username/bacterial_wgs_training directory.</li>
-<li><strong>NB</strong> Repository couldn’t work, I have to check let’s
-use one from /cbio/projects/033/Tychus.</li>
 <li>The pipeline involves two modules: assembly and alignment.</li>
-<li>This section will focus on the assembly <a href="https://github.com/kviljoen/Tychus/blob/master/assembly.nf" class="uri">https://github.com/kviljoen/Tychus/blob/master/assembly.nf</a>
+<li>This section will focus on the assembly <a href="https://github.com/egeza/Tychus/blob/master/assembly.nf" class="uri">https://github.com/egeza/Tychus/blob/master/assembly.nf</a>
 module.</li>
 <li>The pipeline also takes “genus” and “species” as arguments or
 flags.</li>
@@ -1837,11 +1835,10 @@ do
   # Create folder specific dir
   mkdir -p /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/${genus}
   echo &quot;${sample}    ${genus}    ${species}&quot; &gt;&gt; /users/username/bacterial_wgs_training/kraken2_summary.txt
-  # Create folder specific dir
-  echo &quot;${sample}     ${genus}    ${species}&quot; &gt;&gt; /users/ephie/wgs/bacterial_wgs_training
-/kraken2_summary.txt; done
-done</code></pre>
-<pre class="r"><code>cp /users/username/bacterial_wgs_training/qcout/bbduk/101-001-01_S21_L001_trimmed_R* \
+done
+
+# COPY
+cp /users/username/bacterial_wgs_training/qcout/bbduk/101-001-01_S21_L001_trimmed_R* \
   /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Klebsiella/
 cp /users/username/bacterial_wgs_training/qcout/bbduk/102-002-01_S10_L001_trimmed_R* \
   /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Klebsiella/
@@ -1862,9 +1859,8 @@ cp /users/username/bacterial_wgs_training/qcout/bbduk/105-008-01_S1_L001_trimmed
 cp /users/username/bacterial_wgs_training/qcout/bbduk/102-006-01_S14_L001_trimmed_R* \
   /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Serratia/
 cp /users/username/bacterial_wgs_training/qcout/bbduk/103-004-01_S3_L001_trimmed_R* \
-  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Escherichia/
-
-nano /users/username/bacterial_wgs_training/scripts/assembly.sh
+  /users/username/bacterial_wgs_training/qcout/bbduk/assembly_in/Escherichia/</code></pre>
+<pre class="r"><code>nano /users/username/bacterial_wgs_training/scripts/assembly.sh
 
 #!/bin/bash
 #SBATCH --job-name=&#39;tychus-assembly&#39;
